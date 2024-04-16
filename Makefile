@@ -14,12 +14,10 @@ TERM_RESET:=$(shell echo -e "\e[0;0m")
 
 # Setup variables for source code, output, etc
 ## ASSEMBLY setup
-ASM_DIST=$(DIST)/asm
-ASM_SRC=asm
-ASM_CODE:=$(addprefix $(ASM_SRC)/, base.cpp lexer.cpp preprocesser.cpp)
-ASM_OBJECTS:=$(ASM_CODE:$(ASM_SRC)/%.cpp=$(ASM_DIST)/%.o)
-ASM_CFLAGS=$(CPPFLAGS)
-ASM_OUT=$(DIST)/asm.out
+SRC=src
+CODE:=$(addprefix $(SRC)/, base.cpp lexer.cpp preprocesser.cpp)
+OBJECTS:=$(CODE:$(SRC)/%.cpp=$(DIST)/%.o)
+OUT=$(DIST)/asm.out
 
 ## EXAMPLES setup
 EXAMPLES_DIST=$(DIST)/examples
@@ -29,34 +27,35 @@ EXAMPLES=$(EXAMPLES_DIST)/instruction-test.out $(EXAMPLES_DIST)/fib.out $(EXAMPL
 ## Dependencies
 DEPDIR:=$(DIST)/dependencies
 DEPFLAGS = -MT $@ -MMD -MP -MF
-DEPS:=$($(ASM_SRC):%.c=$(DEPDIR):%.o)
+DEPS:=$(CODE:$(SRC)/%.cpp=$(DEPDIR)/%.o)
 
 ## AVM
-AVM_ROOT_DIR:=$(shell pwd)/avm
-AVM_DIR:=$(AVM_ROOT_DIR)/lib
-AVM_DIST:=$(AVM_ROOT_DIR)/build/lib
+AVM_ROOT_DIR=avm
+AVM_DIR=$(AVM_ROOT_DIR)/lib
+AVM_DIST=$(AVM_ROOT_DIR)/build/lib
 AVM_SOURCE:=$(shell find $(AVM_DIR) -name '*.c')
 AVM_OBJECTS:=$(AVM_SOURCE:$(AVM_DIR)/%.c=$(AVM_DIST)/%.o)
+VM_OUT:=$(AVM_ROOT_DIR)/build/avm.out
 
 # Things you want to build on `make`
 all: $(DIST) asm examples
 
-asm: $(ASM_OUT)
+asm: $(OUT)
 examples: $(EXAMPLES)
 
 # Recipes
 ## ASSEMBLY Recipes
-$(ASM_OUT): $(AVM_OBJECTS) $(ASM_OBJECTS) $(ASM_DIST)/main.o
-	@$(CPP) $(ASM_CFLAGS) $^ -o $@ $(LIBS)
+$(OUT): $(AVM_OBJECTS) $(OBJECTS) $(DIST)/main.o
+	@$(CPP) $(CPPFLAGS) $^ -o $@ $(LIBS)
 	@echo "$(TERM_GREEN)$@$(TERM_RESET): $^"
 
-$(ASM_DIST)/%.o: $(ASM_SRC)/%.cpp | $(ASM_DIST) $(DEPDIR)/asm
-	@$(CPP) $(ASM_CFLAGS) $(DEPFLAGS) $(DEPDIR)/asm/$*.d -c $< -o $@ $(LIBS)
+$(DIST)/%.o: $(SRC)/%.cpp | $(DIST) $(DEPDIR)/asm
+	@$(CPP) $(CPPFLAGS) $(DEPFLAGS) $(DEPDIR)/asm/$*.d -c $< -o $@ $(LIBS)
 	@echo "$(TERM_YELLOW)$@$(TERM_RESET): $<"
 
 ## EXAMPLES recipes
-$(EXAMPLES_DIST)/%.out: $(EXAMPLES_SRC)/%.asm $(ASM_OUT) | $(EXAMPLES_DIST)
-	@$(ASM_OUT) $< $@
+$(EXAMPLES_DIST)/%.out: $(EXAMPLES_SRC)/%.asm $(OUT) | $(EXAMPLES_DIST)
+	@$(OUT) $< $@
 	@echo "$(TERM_GREEN)$@$(TERM_RESET): $<"
 
 .PHONY: run-examples
@@ -65,16 +64,20 @@ run-examples: $(EXAMPLES)
 
 ## libavm
 $(AVM_OBJECTS): libavm;
+$(VM_OUT): avm.exe;
 
 .PHONY: libavm
 libavm:
 	@$(MAKE) -C $(AVM_ROOT_DIR) lib
 
-OUT=
+.PHONY: avm.exe
+avm.exe:
+	@$(MAKE) -C $(AVM_ROOT_DIR) vm
+
 ARGS=
 
 .PHONY: run
-run: $(DIST)/$(OUT)
+run: $(OUT)
 	./$^ $(ARGS)
 
 .PHONY: clean
@@ -85,23 +88,20 @@ clean:
 SOURCE=
 BYTECODE=
 .PHONY: assemble
-assemble: $(ASM_OUT)
-	@$(ASM_OUT) $(SOURCE) $(BYTECODE)
+assemble: $(OUT)
+	@$(OUT) $(SOURCE) $(BYTECODE)
 
 .PHONY: interpret
 interpret: $(VM_OUT)
 	@$(VM_OUT) $(BYTECODE)
 
 .PHONY: exec
-exec: $(ASM_OUT) $(VM_OUT)
-	@$(ASM_OUT) $(SOURCE) $(BYTECODE)
+exec: $(OUT) $(VM_OUT)
+	@$(OUT) $(SOURCE) $(BYTECODE)
 	@$(VM_OUT) $(BYTECODE)
 
 # Directories
 $(DIST):
-	@mkdir -p $@
-
-$(ASM_DIST):
 	@mkdir -p $@
 
 $(EXAMPLES_DIST):
