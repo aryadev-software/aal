@@ -1,110 +1,44 @@
-#+title: Oreo's Virtual Machine (OVM)
+#+title: Aryadev's Assembly Language (AAL)
 #+author: Aryadev Chavali
 #+date: 2023-10-15
 
-A stack based virtual machine in C11, with a dynamic register setup
-which acts as variable space.  Deals primarily in bytes, doesn't make
-assertions about typing and is very simple to target.
+A compiler for Aryadev's Assembly Language, an assembly-like
+programming language, which targets the
+[[https://github.com/aryadev-software/avm/][AVM]].
 
-2024-04-16: Project will now be split into two components
-1) The runtime + base library
-2) The assembler
-
-This will focus each repository on separate issues and make it easier
-to organize.  They will both derive from the same repositories
-i.e. I'm not making fresh repositories and just sticking the folders
-in but rather branching this repository into two different versions.
-
-The two versions will be hosted at:
-1) [[https://github.com/aryadev-software/avm]]
-1) [[https://github.com/aryadev-software/aal]]
 * How to build
-Requires =GNU make= and a compliant C11 compiler.  Code base has been
-tested against =gcc= and =clang=, but given how the project has been
-written without use of GNU'isms (that I'm aware of) it shouldn't be an
-issue to compile using something like =tcc= or another compiler (look
-at [[file:Makefile::CC=gcc][here]] to change the compiler).
+Requires =GNU make= and a compliant C++17 compiler.  Code base has
+been tested against =g++= and =clang=, but given how the project has
+been written without use of GNU'isms (that I'm aware of) it shouldn't
+be an issue to compile using something like =tcc= or another compiler
+(look at [[file:Makefile::CPP=g++][here]] to change the compiler).
 
 To build everything simply run ~make~.  This will build:
-+ [[file:lib/inst.c][instruction bytecode system]] which provides
-  object files to target the VM
-+ [[file:vm/main.c][VM executable]] which executes bytecode
-+ [[file:asm/main.c][Assembler executable]] which assembles compliant
-  assembly code to VM bytecode
++ [[file:asm/main.cpp][Assembler executable]] which assembles
+  compliant assembly code to VM bytecode
 + [[file:examples/][Assembly examples]] which provide some source code
   examples on common programs one may write.  Use this to figure out
-  how to write compliant assembly.  Also a good test of both the VM
-  and assembler.
+  how to write compliant AAL.  Also a good test of both the VM and
+  assembler.
 
 You may also build each component individually through the
 corresponding recipe:
-+ ~make lib~
-+ ~make vm~
 + ~make asm~
 + ~make examples~
-* Instructions to target the virtual machine
-You need to link with the object files for
-[[file:lib/base.c][base.c]], [[file:lib/darr.c][darr.c]] and
-[[file:lib/inst.c][inst.c]] to be able to properly target the OVM.
-The basic idea is to create some instructions via ~inst_t~,
-instantiating a ~prog_t~ structure which wraps those instructions
-(includes a header and other useful things for the runtime), then
-using ~prog_write_file~ to serialise and write bytecode to a file
-pointer.
-
-To execute directly compiled bytecode use the ~ovm.out~ executable on
-the bytecode file.
-
-For clarity, one may build ~lib~ (~make lib~) then use the resulting
-object files to link and create bytecode for the virtual machine.
-** In memory virtual machine
-Instead of serialising and writing bytecode to a file, one may instead
-serialise bytecode in memory using ~prog_write_bytecode~ which writes
-bytecode to a dynamic byte buffer, so called *in memory compilation*.
-To execute this bytecode, deserialise the bytecode into a program then
-load it into a complete ~vm_t~ structure (linking with
-[[file:vm/runtime.c][runtime.c]]).
-
-In fact, you may skip the process of serialising entirely.  You can
-emit a ~prog_t~ structure corresponding to source code, load it
-directly into the ~vm_t~ structure, then execute.  To do so is a bit
-involved, so I recommend looking at [[file:vm/main.c]].  In rough
-steps:
-+ Create a virtual machine "from scratch" (load the necessary
-  components (the stack, heap and call stack) by hand)
-+ Load program into VM (~vm_load_program~)
-+ Run ~vm_execute_all~
-
-This is recommended if writing an interpreted language such as a Lisp,
-where on demand execution of code is more suitable.
 * Lines of code
 #+begin_src sh :results table :exports results
-wc -lwc $(find -regex ".*\.[ch]\(pp\)?")
+wc -lwc $(find -regex ".*\.[ch]\(pp\)?" -maxdepth 2)
 #+end_src
 
 #+RESULTS:
-| Files                  | Lines | Words |  Bytes |
-|------------------------+-------+-------+--------|
-| ./lib/heap.h           |    42 |   111 |    801 |
-| ./lib/inst.c           |   516 |  1315 |  13982 |
-| ./lib/darr.c           |    77 |   225 |   1757 |
-| ./lib/base.c           |   107 |   306 |   2002 |
-| ./lib/inst.h           |   108 |   426 |   4067 |
-| ./lib/prog.h           |   176 |   247 |   2616 |
-| ./lib/base.h           |   148 |   626 |   3915 |
-| ./lib/darr.h           |    88 |   465 |   2697 |
-| ./lib/heap.c           |   101 |   270 |   1910 |
-| ./vm/runtime.h         |   301 |   780 |   7965 |
-| ./vm/runtime.c         |  1070 |  3097 |  30010 |
-| ./vm/main.c            |    92 |   265 |   2243 |
-| ./asm/base.hpp         |    21 |    68 |    472 |
-| ./asm/lexer.cpp        |   565 |  1448 |  14067 |
-| ./asm/base.cpp         |    33 |    89 |    705 |
-| ./asm/parser.hpp       |    82 |   199 |   1656 |
-| ./asm/parser.cpp       |    42 |   129 |   1294 |
-| ./asm/lexer.hpp        |   106 |   204 |   1757 |
-| ./asm/preprocesser.cpp |   218 |   574 |   5800 |
-| ./asm/preprocesser.hpp |    62 |   147 |   1360 |
-| ./asm/main.cpp         |   148 |   414 |   3791 |
-|------------------------+-------+-------+--------|
-| total                  |  4103 | 11405 | 104867 |
+| Files                  | Lines | Words | Bytes |
+|------------------------+-------+-------+-------|
+| ./asm/base.hpp         |    21 |    68 |   472 |
+| ./asm/lexer.cpp        |   565 |  1448 | 14067 |
+| ./asm/base.cpp         |    33 |    89 |   705 |
+| ./asm/lexer.hpp        |   106 |   204 |  1757 |
+| ./asm/preprocesser.cpp |   218 |   574 |  5800 |
+| ./asm/preprocesser.hpp |    62 |   147 |  1360 |
+| ./asm/main.cpp         |   148 |   414 |  3791 |
+|------------------------+-------+-------+-------|
+| total                  |  1153 |  2944 | 27952 |

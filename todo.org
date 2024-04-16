@@ -5,17 +5,9 @@
 
 * TODO Better documentation [0%] :DOC:
 ** TODO Comment coverage [0%]
-*** WIP Lib [50%]
-**** DONE lib/base.h
-**** DONE lib/darr.h
-**** TODO lib/heap.h
-**** TODO lib/inst.h
 *** TODO ASM [0%]
 **** TODO asm/lexer.h
 **** TODO asm/parser.h
-*** TODO VM [0%]
-**** TODO vm/runtime.h
-** TODO Specification
 * TODO Preprocessing directives :ASM:
 Like in FASM or NASM where we can give certain helpful instructions to
 the assembler.  I'd use the ~%~ symbol to designate preprocessor
@@ -200,85 +192,6 @@ process_const(V: Vector[Unit]) ->
      v = v_x[0]
      for v_x in V]
 #+end_src
-* TODO Introduce error handling in base library :LIB:
-There is a large variety of TODOs about errors.  Let's fix them!
-8 TODOs currently present.
-* TODO Standard library :ASM:VM:
-I should start considering this and how a user may use it.  Should it
-be an option in the VM and/or assembler binaries (i.e. a flag) or
-something the user has to specify in their source files?
-
-Something to consider is /static/ and /dynamic/ "linking" i.e.:
-+ Static linking: assembler inserts all used library definitions into
-  the bytecode output directly
-  + We could insert all of it at the start of the bytecode file, and
-    with [[*Start points][Start points]] this won't interfere with
-    user code
-    + 2023-11-03: Finishing the Start point feature has made these
-      features more tenable.  A program header which is compiled and
-      interpreted in bytecode works wonders.
-  + Furthermore library code will have fixed program addresses (always
-    at the start) so we'll know at start of assembler runtime where to
-    resolve standard library subroutine calls
-  + Virtual machine needs no changes to do this
-** TODO Consider dynamic Linking
-+ Dynamic linking: virtual machine has fixed program storage for
-  library code (a ROM), and assembler makes jump references
-  specifically for this program storage
-  + When assembling subroutine calls, just need to put references to
-    this library storage (some kind of shared state between VM and
-    assembler to know what these references are)
-  + VM needs to manage a ROM of some kind for library code
-  + How do we ensure assembled links to subroutine calls don't
-    conflict with user code jumps?
-
-What follows is a possible dynamic linking strategy.  It requires
-quite a few moving parts:
-
-The address operand of every program control instruction (~CALL~,
-~JUMP~, ~JUMP.IF~) has a specific encoding if the standard library is
-dynamically linked:
-+ If the most significant bit is 0, the remaining 63 bits encode an
-  absolute address within the program
-+ Otherwise, the address encodes a standard library subroutine.  The
-  bits within the address follow this schema:
-  + The next 30 bits represent the specific module where the
-    subroutine is defined (over 1.07 *billion* possible library values)
-  + The remaining 33 bits (4 bytes + 1 bit) encode the absolute
-    program address in the bytecode of that specific module for the
-    start of the subroutine (over 8.60 *billion* values)
-
-The assembler will automatically encode this based on "%USE" calls and
-the name of the subroutines called.  On the virtual machine, there is
-a storage location (similar to the ROM of real machines) which stores
-the bytecode for modules of the standard library, indexed by the
-module number.  This means, on deserialising the address into the
-proper components, the VM can refer to the module bytecode then jump
-to the correct address.
-
-2023-11-09: I'll need a way to run library code in the current program
-system in the runtime.  It currently doesn't support jumps or work in
-programs outside of the main one unfortunately.  Any proper work done
-in this area requires some proper refactoring.
-
-2023-11-09: Constants or inline macros need to be reconfigured for
-this to work: at parse time, we work out the inlines directly which
-means compiling bytecode with "standard library" macros will not work
-as they won't be in the token stream.  Either we don't allow
-preprocessor work in the standard library at all (which is bad cos we
-can't then set standard limits or other useful things) or we insert
-them into the registries at parse time for use in program parsing
-(which not only requires assembler refactoring to figure out what
-libraries are used (to pull definitions from) but also requires making
-macros "recognisable" in bytecode because they're essentially
-invisible).
-
-2024-04-15: Perhaps we could insert the linking information into the
-program header?
-1) A table which states the load order of certain modules would allow
-   the runtime to selectively spin up and properly delegate module
-   jumps to the right bytecode
-2)
 * Completed
 ** DONE Write a label/jump system :ASM:
 Essentially a user should be able to write arbitrary labels (maybe
