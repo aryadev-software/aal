@@ -1,0 +1,3 @@
+[submodule "avm"]
+	path = avm
+	url = git@github.com:aryadev-software/avm
