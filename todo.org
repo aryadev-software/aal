@@ -192,6 +192,9 @@ process_const(V: Vector[Unit]) ->
      v = v_x[0]
      for v_x in V]
 #+end_src
+* TODO Write a specification for the assembly language
+In particular the preprocessor macro language and the direct relation
+between opcodes and parse units in the assembler.
 * Completed
 ** DONE Write a label/jump system :ASM:
 Essentially a user should be able to write arbitrary labels (maybe
