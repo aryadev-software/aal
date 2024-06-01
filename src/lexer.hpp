@@ -71,13 +71,21 @@ namespace Lexer
     size_t column, line;
     std::string content;
 
-    Token();
-    Token(Token::Type, std::string, size_t col = 0, size_t line = 0);
-  };
+    enum class OperandType
+    {
+      NIL,
+      BYTE,
+      CHAR,
+      HWORD,
+      INT,
+      WORD,
+      LONG
+    } operand_type;
 
-  std::ostream &operator<<(std::ostream &, const Token &);
-  std::string to_string(const Token::Type &);
-  std::string to_string(const Token &);
+    Token();
+    Token(Token::Type, std::string_view content = "", size_t col = 0,
+          size_t line = 0, OperandType optype = OperandType::NIL);
+  };
 
   struct Err
   {
@@ -90,17 +98,24 @@ namespace Lexer
       INVALID_STRING_LITERAL,
       INVALID_NUMBER_LITERAL,
       INVALID_PREPROCESSOR_DIRECTIVE,
+      EXPECTED_TYPE_SUFFIX,
+      EXPECTED_UNSIGNED_TYPE_SUFFIX,
       UNKNOWN_LEXEME,
     } type;
 
     Err(Type type = Type::OK, size_t col = 0, size_t line = 0);
   };
 
-  std::ostream &operator<<(std::ostream &, const Err &);
+  Err tokenise_buffer(std::string_view, std::vector<Token *> &);
+
+  std::string to_string(const Token::Type &);
+  std::string to_string(const Token::OperandType &);
+  std::string to_string(const Token &);
   std::string to_string(const Err::Type &);
   std::string to_string(const Err &);
 
-  Err tokenise_buffer(std::string_view, std::vector<Token *> &);
+  std::ostream &operator<<(std::ostream &, const Token &);
+  std::ostream &operator<<(std::ostream &, const Err &);
 } // namespace Lexer
 
 #endif
