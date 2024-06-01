@@ -16,13 +16,12 @@ extern "C"
 }
 
 #include <algorithm>
-#include <tuple>
 
 #include "./lexer.hpp"
 
 static_assert(NUMBER_OF_OPCODES == 99, "ERROR: Lexer is out of date");
 
-using std::string, std::string_view, std::pair, std::make_pair;
+using std::string, std::string_view;
 
 namespace Lexer
 {
@@ -42,8 +41,8 @@ namespace Lexer
     return (src.size() > match.size() && src.substr(0, match.size()) == match);
   }
 
-  pair<Token, Err> tokenise_symbol(string_view &source, size_t &column,
-                                   size_t line)
+  Err tokenise_symbol(string_view &source, size_t &column, size_t line,
+                      Token &token)
   {
     auto end = source.find_first_not_of(VALID_SYMBOL);
     if (end == string::npos)
@@ -56,175 +55,174 @@ namespace Lexer
 
     if (sym == "%CONST")
     {
-      t.type = Token::Type::PP_CONST;
+      token.type = Token::Type::PP_CONST;
     }
     else if (sym == "%USE")
     {
-      t.type = Token::Type::PP_USE;
+      token.type = Token::Type::PP_USE;
     }
     else if (sym == "%END")
     {
-      t.type = Token::Type::PP_END;
+      token.type = Token::Type::PP_END;
     }
     else if (sym[0] == '%')
     {
-      return make_pair(
-          t, Err(Err::Type::INVALID_PREPROCESSOR_DIRECTIVE, column, line));
+      return Err(Err::Type::INVALID_PREPROCESSOR_DIRECTIVE, column, line);
     }
     else if (sym.size() > 1 && sym[0] == '$')
     {
-      t = Token(Token::Type::PP_REFERENCE, sym.substr(1));
+      token = Token{Token::Type::PP_REFERENCE, sym.substr(1)};
     }
     else if (sym == "NOOP")
     {
-      t.type = Token::Type::NOOP;
+      token.type = Token::Type::NOOP;
     }
     else if (sym == "HALT")
     {
-      t.type = Token::Type::HALT;
+      token.type = Token::Type::HALT;
     }
     else if (initial_match(sym, "PUSH.REG."))
     {
-      t = Token(Token::Type::PUSH_REG, sym.substr(9));
+      token = Token{Token::Type::PUSH_REG, sym.substr(9)};
     }
     else if (initial_match(sym, "PUSH."))
     {
-      t = Token(Token::Type::PUSH, sym.substr(5));
+      token = Token{Token::Type::PUSH, sym.substr(5)};
     }
     else if (initial_match(sym, "POP."))
     {
-      t = Token(Token::Type::POP, sym.substr(4));
+      token = Token{Token::Type::POP, sym.substr(4)};
     }
     else if (initial_match(sym, "MOV."))
     {
-      t = Token(Token::Type::MOV, sym.substr(4));
+      token = Token{Token::Type::MOV, sym.substr(4)};
     }
     else if (initial_match(sym, "DUP."))
     {
-      t = Token(Token::Type::DUP, sym.substr(4));
+      token = Token{Token::Type::DUP, sym.substr(4)};
     }
     else if (initial_match(sym, "MALLOC.STACK."))
     {
-      t = Token(Token::Type::MALLOC_STACK, sym.substr(13));
+      token = Token{Token::Type::MALLOC_STACK, sym.substr(13)};
     }
     else if (initial_match(sym, "MALLOC."))
     {
-      t = Token(Token::Type::MALLOC, sym.substr(7));
+      token = Token{Token::Type::MALLOC, sym.substr(7)};
     }
-    else if (initial_match(sym, "MSET.STACK."))
+    else if (initial_match(sym, "MSETOKEN.STACK."))
     {
-      t = Token(Token::Type::MSET_STACK, sym.substr(11));
+      token = Token{Token::Type::MSET_STACK, sym.substr(11)};
     }
-    else if (initial_match(sym, "MSET."))
+    else if (initial_match(sym, "MSETOKEN."))
     {
-      t = Token(Token::Type::MSET, sym.substr(5));
+      token = Token{Token::Type::MSET, sym.substr(5)};
     }
-    else if (initial_match(sym, "MGET.STACK."))
+    else if (initial_match(sym, "MGETOKEN.STACK."))
     {
-      t = Token(Token::Type::MGET_STACK, sym.substr(11));
+      token = Token{Token::Type::MGET_STACK, sym.substr(11)};
     }
-    else if (initial_match(sym, "MGET."))
+    else if (initial_match(sym, "MGETOKEN."))
     {
-      t = Token(Token::Type::MGET, sym.substr(5));
+      token = Token{Token::Type::MGET, sym.substr(5)};
     }
     else if (sym == "MDELETE")
     {
-      t.type = Token::Type::MDELETE;
+      token.type = Token::Type::MDELETE;
     }
     else if (sym == "MSIZE")
     {
-      t.type = Token::Type::MSIZE;
+      token.type = Token::Type::MSIZE;
     }
-    else if (initial_match(sym, "NOT."))
+    else if (initial_match(sym, "NOTOKEN."))
     {
-      t = Token(Token::Type::NOT, sym.substr(4));
+      token = Token{Token::Type::NOT, sym.substr(4)};
     }
     else if (initial_match(sym, "OR."))
     {
-      t = Token(Token::Type::OR, sym.substr(3));
+      token = Token{Token::Type::OR, sym.substr(3)};
     }
     else if (initial_match(sym, "AND."))
     {
-      t = Token(Token::Type::AND, sym.substr(4));
+      token = Token{Token::Type::AND, sym.substr(4)};
     }
     else if (initial_match(sym, "XOR."))
     {
-      t = Token(Token::Type::XOR, sym.substr(4));
+      token = Token{Token::Type::XOR, sym.substr(4)};
     }
     else if (initial_match(sym, "EQ."))
     {
-      t = Token(Token::Type::EQ, sym.substr(3));
+      token = Token{Token::Type::EQ, sym.substr(3)};
     }
     else if (initial_match(sym, "LTE."))
     {
-      t = Token(Token::Type::LTE, sym.substr(4));
+      token = Token{Token::Type::LTE, sym.substr(4)};
     }
-    else if (initial_match(sym, "LT."))
+    else if (initial_match(sym, "LTOKEN."))
     {
-      t = Token(Token::Type::LT, sym.substr(3));
+      token = Token{Token::Type::LT, sym.substr(3)};
     }
     else if (initial_match(sym, "GTE."))
     {
-      t = Token(Token::Type::GTE, sym.substr(4));
+      token = Token{Token::Type::GTE, sym.substr(4)};
     }
-    else if (initial_match(sym, "GT."))
+    else if (initial_match(sym, "GTOKEN."))
     {
-      t = Token(Token::Type::GT, sym.substr(3));
+      token = Token{Token::Type::GT, sym.substr(3)};
     }
     else if (initial_match(sym, "SUB."))
     {
-      t = Token(Token::Type::SUB, sym.substr(4));
+      token = Token{Token::Type::SUB, sym.substr(4)};
     }
     else if (initial_match(sym, "PLUS."))
     {
-      t = Token(Token::Type::PLUS, sym.substr(5));
+      token = Token{Token::Type::PLUS, sym.substr(5)};
     }
-    else if (initial_match(sym, "MULT."))
+    else if (initial_match(sym, "MULTOKEN."))
     {
-      t = Token(Token::Type::MULT, sym.substr(5));
+      token = Token{Token::Type::MULT, sym.substr(5)};
     }
-    else if (initial_match(sym, "PRINT."))
+    else if (initial_match(sym, "PRINTOKEN."))
     {
-      t = Token(Token::Type::PRINT, sym.substr(6));
+      token = Token{Token::Type::PRINT, sym.substr(6)};
     }
     else if (sym == "JUMP.ABS")
     {
-      t.type = Token::Type::JUMP_ABS;
+      token.type = Token::Type::JUMP_ABS;
     }
     else if (sym == "JUMP.STACK")
     {
-      t.type = Token::Type::JUMP_STACK;
+      token.type = Token::Type::JUMP_STACK;
     }
     else if (initial_match(sym, "JUMP.IF."))
     {
-      t = Token(Token::Type::JUMP_IF, sym.substr(8));
+      token = Token{Token::Type::JUMP_IF, sym.substr(8)};
     }
     else if (sym == "CALL.STACK")
     {
-      t.type = Token::Type::CALL_STACK;
+      token.type = Token::Type::CALL_STACK;
     }
     else if (sym == "CALL")
     {
-      t.type = Token::Type::CALL;
+      token.type = Token::Type::CALL;
     }
     else if (sym == "RET")
     {
-      t.type = Token::Type::RET;
+      token.type = Token::Type::RET;
     }
     else if (sym == "GLOBAL")
     {
-      t.type = Token::Type::GLOBAL;
+      token.type = Token::Type::GLOBAL;
     }
     else
     {
-      t.type = Token::Type::SYMBOL;
+      token.type = Token::Type::SYMBOL;
     }
 
-    if (t.content == "")
-      t.content = sym;
-    t.column = column;
+    if (token.content == "")
+      token.content = sym;
+    token.column = column;
     column += sym.size() - 1;
-    return make_pair(t, Err());
+    return Err();
   }
 
   Token tokenise_literal_number(string_view &source, size_t &column)
@@ -266,20 +264,19 @@ namespace Lexer
     return t;
   }
 
-  pair<Token, Err> tokenise_literal_char(string_view &source, size_t &column,
-                                         size_t &line)
+  Err tokenise_literal_char(string_view &source, size_t &column, size_t &line,
+                            Token &t)
   {
-    Token t{};
     auto end = source.find('\'', 1);
     if (source.size() < 3 || end == 1 || end > 3)
-      return make_pair(t, Err(Err::Type::INVALID_CHAR_LITERAL, column, line));
+      return Err(Err::Type::INVALID_CHAR_LITERAL, column, line);
     else if (source[1] == '\\')
     {
       // Escape sequence
       char escape = '\0';
       if (source.size() < 4 || source[3] != '\'')
-        return make_pair(t, Err(Err::Type::INVALID_CHAR_LITERAL_ESCAPE_SEQUENCE,
-                                column, line));
+        return Err(Err::Type::INVALID_CHAR_LITERAL_ESCAPE_SEQUENCE, column,
+                   line);
       switch (source[2])
       {
       case 'n':
@@ -296,8 +293,8 @@ namespace Lexer
         break;
       default:
         column += 2;
-        return make_pair(t, Err(Err::Type::INVALID_CHAR_LITERAL_ESCAPE_SEQUENCE,
-                                column, line));
+        return Err(Err::Type::INVALID_CHAR_LITERAL_ESCAPE_SEQUENCE, column,
+                   line);
         break;
       }
       t = Token{Token::Type::LITERAL_CHAR, std::to_string(escape), column};
@@ -306,11 +303,11 @@ namespace Lexer
     }
     else
     {
-      t = Token(Token::Type::LITERAL_CHAR, std::to_string(source[1]));
+      t = Token{Token::Type::LITERAL_CHAR, std::to_string(source[1])};
       column += 3;
       source.remove_prefix(3);
     }
-    return make_pair(t, Err());
+    return Err();
   }
 
   Token tokenise_literal_string(string_view &source, size_t &column, size_t end)
@@ -361,7 +358,7 @@ namespace Lexer
       }
       else if (first == '*')
       {
-        t = Token(Token::Type::STAR, "", column);
+        t = Token{Token::Type::STAR, "", column};
         source.remove_prefix(1);
       }
       else if (first == '\"')
@@ -373,8 +370,7 @@ namespace Lexer
       }
       else if (first == '\'')
       {
-        Err lerr;
-        std::tie(t, lerr) = tokenise_literal_char(source, column, line);
+        Err lerr = tokenise_literal_char(source, column, line, t);
         if (lerr.type != Err::Type::OK)
           return lerr;
       }
@@ -401,7 +397,7 @@ namespace Lexer
       else if (is_char_in_s(first, VALID_SYMBOL))
       {
         Err lerr;
-        std::tie(t, lerr) = tokenise_symbol(source, column, line);
+        lerr = tokenise_symbol(source, column, line, t);
         if (lerr.type != Err::Type::OK)
           return lerr;
       }
@@ -414,7 +410,7 @@ namespace Lexer
       if (is_token)
       {
         t.line     = line;
-        Token *acc = new Token(t);
+        Token *acc = new Token{t};
         tokens.push_back(acc);
       }
     }
