@@ -20,7 +20,7 @@ extern "C"
 
 #include "./lexer.hpp"
 
-static_assert(NUMBER_OF_OPCODES == 98, "ERROR: Lexer is out of date");
+static_assert(NUMBER_OF_OPCODES == 99, "ERROR: Lexer is out of date");
 
 using std::string, std::string_view, std::pair, std::make_pair;
 
