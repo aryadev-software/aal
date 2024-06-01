@@ -15,7 +15,7 @@ TERM_RESET:=$(shell echo -e "\e[0;0m")
 # Setup variables for source code, output, etc
 ## ASSEMBLY setup
 SRC=src
-CODE:=$(addprefix $(SRC)/, base.cpp lexer.cpp preprocesser.cpp)
+CODE:=$(addprefix $(SRC)/, base.cpp lexer.cpp)
 OBJECTS:=$(CODE:$(SRC)/%.cpp=$(DIST)/%.o)
 OUT=$(DIST)/asm.out
 

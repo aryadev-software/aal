@@ -10,12 +10,10 @@
  * Description: Entrypoint for assembly program
  */
 
-#include <algorithm>
 #include <cstdio>
 #include <iostream>
 #include <optional>
 #include <string>
-#include <tuple>
 #include <vector>
 
 extern "C"
@@ -25,10 +23,9 @@ extern "C"
 
 #include "./base.hpp"
 #include "./lexer.hpp"
-#include "./preprocesser.hpp"
 
 using std::cout, std::cerr, std::endl;
-using std::pair, std::string, std::string_view, std::vector;
+using std::string, std::string_view, std::vector;
 
 using Lexer::Token;
 using Lex_Err = Lexer::Err;
@@ -71,7 +68,6 @@ int main(int argc, const char *argv[])
   string_view src;
   vector<Token *> tokens, preprocessed_tokens;
   Lex_Err lerr;
-  pp_err_t pp_err;
 
   // Highest scoped variable cut off point
 
@@ -113,38 +109,8 @@ int main(int argc, const char *argv[])
 #endif
   }
 
-  // preprocessing
-  pp_err = preprocesser(tokens, preprocessed_tokens);
-  if (pp_err.type != pp_err_type_t::OK)
-  {
-    cerr << source_name << ":" << pp_err.reference->line << ":"
-         << pp_err.reference->column << ": " << pp_err << endl;
-    ret = 255 - static_cast<int>(pp_err.type);
-    goto end;
-  }
-  else
-  {
-
-#if VERBOSE >= 1
-    printf("[%sPREPROCESSOR%s]: %lu tokens -> %lu tokens\n", TERM_GREEN,
-           TERM_RESET, tokens.size(), preprocessed_tokens.size());
-#endif
-#if VERBOSE == 2
-    printf("[%sPREPROCESSOR%s]: Processed tokens: "
-           "\n-----------------------------------------------------------------"
-           "---------------\n",
-           TERM_GREEN, TERM_RESET);
-    for (auto token : preprocessed_tokens)
-      cout << "\t" << *token << endl;
-    printf("-------------------------------------------------------------"
-           "-------------------\n");
-#endif
-  }
-
 end:
   for (auto token : tokens)
-    delete token;
-  for (auto token : preprocessed_tokens)
     delete token;
 
   return ret;
