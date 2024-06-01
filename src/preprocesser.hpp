@@ -30,33 +30,34 @@ enum pp_err_type_t
 
 struct pp_err_t
 {
-  const Token *reference;
+  const Lexer::Token *reference;
   pp_err_type_t type;
-  lerr_t lerr;
+  Lexer::lerr_t lerr;
 
   pp_err_t();
   pp_err_t(pp_err_type_t);
-  pp_err_t(pp_err_type_t, const Token *);
-  pp_err_t(pp_err_type_t, const Token *, lerr_t);
+  pp_err_t(pp_err_type_t, const Lexer::Token *);
+  pp_err_t(pp_err_type_t, const Lexer::Token *, Lexer::lerr_t);
 };
 
 std::ostream &operator<<(std::ostream &, pp_err_t &);
 
 struct pp_unit_t
 {
-  const Token *const token;
+  const Lexer::Token *const token;
   struct
   {
     std::string_view name;
     std::vector<pp_unit_t> elements;
   } container;
 
-  pp_unit_t(const Token *const);
+  pp_unit_t(const Lexer::Token *const);
   pp_unit_t(std::string_view, std::vector<pp_unit_t>);
 };
 
-std::vector<pp_unit_t> tokens_to_units(const std::vector<Token *> &);
+std::vector<pp_unit_t> tokens_to_units(const std::vector<Lexer::Token *> &);
 pp_err_t preprocess_use(std::vector<pp_unit_t> &);
-pp_err_t preprocesser(const std::vector<Token *> &, std::vector<Token *> &);
+pp_err_t preprocesser(const std::vector<Lexer::Token *> &,
+                      std::vector<Lexer::Token *> &);
 
 #endif

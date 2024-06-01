@@ -18,6 +18,8 @@
 
 using std::pair, std::vector, std::make_pair, std::string, std::string_view;
 
+using Lexer::Token, Lexer::lerr_t, Lexer::lerr_type_t;
+
 #define VCLEAR(V)                       \
   std::for_each((V).begin(), (V).end(), \
                 [](Token *t)            \

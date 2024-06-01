@@ -30,6 +30,8 @@ extern "C"
 using std::cout, std::cerr, std::endl;
 using std::pair, std::string, std::string_view, std::vector;
 
+using Lexer::Token, Lexer::lerr_t, Lexer::lerr_type_t;
+
 void usage(const char *program_name, FILE *fp)
 {
   fprintf(fp,
