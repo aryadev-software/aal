@@ -15,7 +15,6 @@
 
 #include <ostream>
 #include <string>
-#include <tuple>
 #include <vector>
 
 namespace Lexer
@@ -76,9 +75,9 @@ namespace Lexer
     Token(Token::Type, std::string, size_t col = 0, size_t line = 0);
   };
 
-  const char *token_type_as_cstr(Token::Type type);
-
-  std::ostream &operator<<(std::ostream &, Token &);
+  std::ostream &operator<<(std::ostream &, const Token &);
+  std::string to_string(const Token::Type &);
+  std::string to_string(const Token &);
 
   struct Err
   {
@@ -97,7 +96,7 @@ namespace Lexer
     Err(Type type = Type::OK, size_t col = 0, size_t line = 0);
   };
 
-  std::ostream &operator<<(std::ostream &, Err &);
+  std::ostream &operator<<(std::ostream &, const Err &);
 
   Err tokenise_buffer(std::string_view, std::vector<Token *> &);
 } // namespace Lexer

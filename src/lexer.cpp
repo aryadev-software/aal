@@ -16,6 +16,7 @@ extern "C"
 }
 
 #include <algorithm>
+#include <sstream>
 
 #include "./lexer.hpp"
 
@@ -417,12 +418,6 @@ namespace Lexer
     return Err{};
   }
 
-  std::ostream &operator<<(std::ostream &os, Token &t)
-  {
-    return os << token_type_as_cstr(t.type) << "(`" << t.content << "`)@"
-              << t.line << ", " << t.column;
-  }
-
   Token::Token()
   {}
 
@@ -430,7 +425,11 @@ namespace Lexer
       : type{type}, column{col}, line{line}, content{content}
   {}
 
-  const char *token_type_as_cstr(Token::Type type)
+  Err::Err(Err::Type type, size_t col, size_t line)
+      : col{col}, line{line}, type{type}
+  {}
+
+  std::string to_string(const Token::Type &type)
   {
     switch (type)
     {
@@ -526,7 +525,20 @@ namespace Lexer
     return "";
   }
 
-  std::ostream &operator<<(std::ostream &os, Err &lerr)
+  std::string to_string(const Token &t)
+  {
+    std::stringstream stream;
+    stream << to_string(t.type) << "(`" << t.content << "`)@" << t.line << ", "
+           << t.column;
+    return stream.str();
+  }
+
+  std::ostream &operator<<(std::ostream &os, const Token &t)
+  {
+    return os << to_string(t);
+  }
+
+  std::ostream &operator<<(std::ostream &os, const Err &lerr)
   {
     os << lerr.line << ":" << lerr.col << ": ";
     switch (lerr.type)
@@ -557,8 +569,4 @@ namespace Lexer
     }
     return os;
   }
-
-  Err::Err(Err::Type type, size_t col, size_t line)
-      : col{col}, line{line}, type{type}
-  {}
 } // namespace Lexer
