@@ -533,40 +533,44 @@ namespace Lexer
     return stream.str();
   }
 
+  std::string to_string(const Err::Type &type)
+  {
+    switch (type)
+    {
+    case Err::Type::OK:
+      return "OK";
+    case Err::Type::INVALID_CHAR_LITERAL:
+      return "INVALID_CHAR_LITERAL";
+    case Err::Type::INVALID_CHAR_LITERAL_ESCAPE_SEQUENCE:
+      return "INVALID_CHAR_LITERAL_ESCAPE_SEQUENCE";
+    case Err::Type::INVALID_STRING_LITERAL:
+      return "INVALID_STRING_LITERAL";
+    case Err::Type::INVALID_NUMBER_LITERAL:
+      return "INVALID_NUMBER_LITERAL";
+    case Err::Type::INVALID_PREPROCESSOR_DIRECTIVE:
+      return "INVALID_PREPROCESSOR_DIRECTIVE";
+    case Err::Type::UNKNOWN_LEXEME:
+      return "UNKNOWN_LEXEME";
+    default:
+      return "";
+    }
+  }
+
+  std::string to_string(const Err &err)
+  {
+    std::stringstream stream;
+    stream << err.line << ":" << err.col << ": ";
+    stream << to_string(err.type);
+    return stream.str();
+  }
+
   std::ostream &operator<<(std::ostream &os, const Token &t)
   {
     return os << to_string(t);
   }
 
-  std::ostream &operator<<(std::ostream &os, const Err &lerr)
+  std::ostream &operator<<(std::ostream &os, const Err &err)
   {
-    os << lerr.line << ":" << lerr.col << ": ";
-    switch (lerr.type)
-    {
-    case Err::Type::OK:
-      os << "OK";
-      break;
-    case Err::Type::INVALID_CHAR_LITERAL:
-      os << "INVALID_CHAR_LITERAL";
-      break;
-    case Err::Type::INVALID_CHAR_LITERAL_ESCAPE_SEQUENCE:
-      os << "INVALID_CHAR_LITERAL_ESCAPE_SEQUENCE";
-      break;
-    case Err::Type::INVALID_STRING_LITERAL:
-      os << "INVALID_STRING_LITERAL";
-      break;
-    case Err::Type::INVALID_NUMBER_LITERAL:
-      os << "INVALID_NUMBER_LITERAL";
-      break;
-    case Err::Type::INVALID_PREPROCESSOR_DIRECTIVE:
-      os << "INVALID_PREPROCESSOR_DIRECTIVE";
-      break;
-    case Err::Type::UNKNOWN_LEXEME:
-      os << "UNKNOWN_LEXEME";
-      break;
-    default:
-      break;
-    }
-    return os;
+    return os << to_string(err);
   }
 } // namespace Lexer

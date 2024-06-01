@@ -97,6 +97,8 @@ namespace Lexer
   };
 
   std::ostream &operator<<(std::ostream &, const Err &);
+  std::string to_string(const Err::Type &);
+  std::string to_string(const Err &);
 
   Err tokenise_buffer(std::string_view, std::vector<Token *> &);
 } // namespace Lexer
