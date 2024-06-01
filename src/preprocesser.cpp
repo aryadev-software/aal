@@ -18,7 +18,7 @@
 
 using std::pair, std::vector, std::make_pair, std::string, std::string_view;
 
-using Lexer::Token, Lexer::lerr_t, Lexer::lerr_type_t;
+using Lexer::Token, Lexer::Err;
 
 #define VCLEAR(V)                       \
   std::for_each((V).begin(), (V).end(), \
@@ -53,8 +53,8 @@ pp_err_t preprocess_use_blocks(const vector<Token *> &tokens,
       }
 
       std::vector<Token *> ftokens;
-      lerr_t lerr = tokenise_buffer(source.value(), ftokens);
-      if (lerr.type != lerr_type_t::OK)
+      Err lerr = tokenise_buffer(source.value(), ftokens);
+      if (lerr.type != Err::Type::OK)
       {
         VCLEAR(vec_out);
         vec_out.clear();
@@ -204,7 +204,7 @@ pp_err_t::pp_err_t(pp_err_type_t err, const Token *ref)
     : reference{ref}, type{err}
 {}
 
-pp_err_t::pp_err_t(pp_err_type_t err, const Token *ref, lerr_t lerr)
+pp_err_t::pp_err_t(pp_err_type_t err, const Token *ref, Err lerr)
     : reference{ref}, type{err}, lerr{lerr}
 {}
 

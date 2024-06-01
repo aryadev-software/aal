@@ -80,28 +80,26 @@ namespace Lexer
 
   std::ostream &operator<<(std::ostream &, Token &);
 
-  enum class lerr_type_t
-  {
-    OK = 0,
-    INVALID_CHAR_LITERAL,
-    INVALID_CHAR_LITERAL_ESCAPE_SEQUENCE,
-    INVALID_STRING_LITERAL,
-    INVALID_NUMBER_LITERAL,
-    INVALID_PREPROCESSOR_DIRECTIVE,
-    UNKNOWN_LEXEME,
-  };
-
-  struct lerr_t
+  struct Err
   {
     size_t col, line;
-    lerr_type_t type;
+    enum class Type
+    {
+      OK = 0,
+      INVALID_CHAR_LITERAL,
+      INVALID_CHAR_LITERAL_ESCAPE_SEQUENCE,
+      INVALID_STRING_LITERAL,
+      INVALID_NUMBER_LITERAL,
+      INVALID_PREPROCESSOR_DIRECTIVE,
+      UNKNOWN_LEXEME,
+    } type;
 
-    lerr_t(lerr_type_t type = lerr_type_t::OK, size_t col = 0, size_t line = 0);
+    Err(Type type = Type::OK, size_t col = 0, size_t line = 0);
   };
 
-  std::ostream &operator<<(std::ostream &, lerr_t &);
+  std::ostream &operator<<(std::ostream &, Err &);
 
-  lerr_t tokenise_buffer(std::string_view, std::vector<Token *> &);
+  Err tokenise_buffer(std::string_view, std::vector<Token *> &);
 } // namespace Lexer
 
 #endif

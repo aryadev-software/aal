@@ -30,7 +30,8 @@ extern "C"
 using std::cout, std::cerr, std::endl;
 using std::pair, std::string, std::string_view, std::vector;
 
-using Lexer::Token, Lexer::lerr_t, Lexer::lerr_type_t;
+using Lexer::Token;
+using Lex_Err = Lexer::Err;
 
 void usage(const char *program_name, FILE *fp)
 {
@@ -69,7 +70,7 @@ int main(int argc, const char *argv[])
   string_view original;
   string_view src;
   vector<Token *> tokens, preprocessed_tokens;
-  lerr_t lerr;
+  Lex_Err lerr;
   pp_err_t pp_err;
 
   // Highest scoped variable cut off point
@@ -86,7 +87,7 @@ int main(int argc, const char *argv[])
   src      = string_view{source_str};
   lerr     = tokenise_buffer(src, tokens);
 
-  if (lerr.type != lerr_type_t::OK)
+  if (lerr.type != Lexer ::Err::Type::OK)
   {
     cerr << source_name << ":" << lerr << endl;
     ret = 255 - static_cast<int>(lerr.type);

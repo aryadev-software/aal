@@ -32,12 +32,12 @@ struct pp_err_t
 {
   const Lexer::Token *reference;
   pp_err_type_t type;
-  Lexer::lerr_t lerr;
+  Lexer::Err lerr;
 
   pp_err_t();
   pp_err_t(pp_err_type_t);
   pp_err_t(pp_err_type_t, const Lexer::Token *);
-  pp_err_t(pp_err_type_t, const Lexer::Token *, Lexer::lerr_t);
+  pp_err_t(pp_err_type_t, const Lexer::Token *, Lexer::Err);
 };
 
 std::ostream &operator<<(std::ostream &, pp_err_t &);
