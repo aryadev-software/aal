@@ -52,15 +52,15 @@ pair<Token, lerr_t> tokenise_symbol(string_view &source, size_t &column,
 
   if (sym == "%CONST")
   {
-    t.type = token_type_t::PP_CONST;
+    t.type = Token::Type::PP_CONST;
   }
   else if (sym == "%USE")
   {
-    t.type = token_type_t::PP_USE;
+    t.type = Token::Type::PP_USE;
   }
   else if (sym == "%END")
   {
-    t.type = token_type_t::PP_END;
+    t.type = Token::Type::PP_END;
   }
   else if (sym[0] == '%')
   {
@@ -69,151 +69,151 @@ pair<Token, lerr_t> tokenise_symbol(string_view &source, size_t &column,
   }
   else if (sym.size() > 1 && sym[0] == '$')
   {
-    t = Token(token_type_t::PP_REFERENCE, sym.substr(1));
+    t = Token(Token::Type::PP_REFERENCE, sym.substr(1));
   }
   else if (sym == "NOOP")
   {
-    t.type = token_type_t::NOOP;
+    t.type = Token::Type::NOOP;
   }
   else if (sym == "HALT")
   {
-    t.type = token_type_t::HALT;
+    t.type = Token::Type::HALT;
   }
   else if (initial_match(sym, "PUSH.REG."))
   {
-    t = Token(token_type_t::PUSH_REG, sym.substr(9));
+    t = Token(Token::Type::PUSH_REG, sym.substr(9));
   }
   else if (initial_match(sym, "PUSH."))
   {
-    t = Token(token_type_t::PUSH, sym.substr(5));
+    t = Token(Token::Type::PUSH, sym.substr(5));
   }
   else if (initial_match(sym, "POP."))
   {
-    t = Token(token_type_t::POP, sym.substr(4));
+    t = Token(Token::Type::POP, sym.substr(4));
   }
   else if (initial_match(sym, "MOV."))
   {
-    t = Token(token_type_t::MOV, sym.substr(4));
+    t = Token(Token::Type::MOV, sym.substr(4));
   }
   else if (initial_match(sym, "DUP."))
   {
-    t = Token(token_type_t::DUP, sym.substr(4));
+    t = Token(Token::Type::DUP, sym.substr(4));
   }
   else if (initial_match(sym, "MALLOC.STACK."))
   {
-    t = Token(token_type_t::MALLOC_STACK, sym.substr(13));
+    t = Token(Token::Type::MALLOC_STACK, sym.substr(13));
   }
   else if (initial_match(sym, "MALLOC."))
   {
-    t = Token(token_type_t::MALLOC, sym.substr(7));
+    t = Token(Token::Type::MALLOC, sym.substr(7));
   }
   else if (initial_match(sym, "MSET.STACK."))
   {
-    t = Token(token_type_t::MSET_STACK, sym.substr(11));
+    t = Token(Token::Type::MSET_STACK, sym.substr(11));
   }
   else if (initial_match(sym, "MSET."))
   {
-    t = Token(token_type_t::MSET, sym.substr(5));
+    t = Token(Token::Type::MSET, sym.substr(5));
   }
   else if (initial_match(sym, "MGET.STACK."))
   {
-    t = Token(token_type_t::MGET_STACK, sym.substr(11));
+    t = Token(Token::Type::MGET_STACK, sym.substr(11));
   }
   else if (initial_match(sym, "MGET."))
   {
-    t = Token(token_type_t::MGET, sym.substr(5));
+    t = Token(Token::Type::MGET, sym.substr(5));
   }
   else if (sym == "MDELETE")
   {
-    t.type = token_type_t::MDELETE;
+    t.type = Token::Type::MDELETE;
   }
   else if (sym == "MSIZE")
   {
-    t.type = token_type_t::MSIZE;
+    t.type = Token::Type::MSIZE;
   }
   else if (initial_match(sym, "NOT."))
   {
-    t = Token(token_type_t::NOT, sym.substr(4));
+    t = Token(Token::Type::NOT, sym.substr(4));
   }
   else if (initial_match(sym, "OR."))
   {
-    t = Token(token_type_t::OR, sym.substr(3));
+    t = Token(Token::Type::OR, sym.substr(3));
   }
   else if (initial_match(sym, "AND."))
   {
-    t = Token(token_type_t::AND, sym.substr(4));
+    t = Token(Token::Type::AND, sym.substr(4));
   }
   else if (initial_match(sym, "XOR."))
   {
-    t = Token(token_type_t::XOR, sym.substr(4));
+    t = Token(Token::Type::XOR, sym.substr(4));
   }
   else if (initial_match(sym, "EQ."))
   {
-    t = Token(token_type_t::EQ, sym.substr(3));
+    t = Token(Token::Type::EQ, sym.substr(3));
   }
   else if (initial_match(sym, "LTE."))
   {
-    t = Token(token_type_t::LTE, sym.substr(4));
+    t = Token(Token::Type::LTE, sym.substr(4));
   }
   else if (initial_match(sym, "LT."))
   {
-    t = Token(token_type_t::LT, sym.substr(3));
+    t = Token(Token::Type::LT, sym.substr(3));
   }
   else if (initial_match(sym, "GTE."))
   {
-    t = Token(token_type_t::GTE, sym.substr(4));
+    t = Token(Token::Type::GTE, sym.substr(4));
   }
   else if (initial_match(sym, "GT."))
   {
-    t = Token(token_type_t::GT, sym.substr(3));
+    t = Token(Token::Type::GT, sym.substr(3));
   }
   else if (initial_match(sym, "SUB."))
   {
-    t = Token(token_type_t::SUB, sym.substr(4));
+    t = Token(Token::Type::SUB, sym.substr(4));
   }
   else if (initial_match(sym, "PLUS."))
   {
-    t = Token(token_type_t::PLUS, sym.substr(5));
+    t = Token(Token::Type::PLUS, sym.substr(5));
   }
   else if (initial_match(sym, "MULT."))
   {
-    t = Token(token_type_t::MULT, sym.substr(5));
+    t = Token(Token::Type::MULT, sym.substr(5));
   }
   else if (initial_match(sym, "PRINT."))
   {
-    t = Token(token_type_t::PRINT, sym.substr(6));
+    t = Token(Token::Type::PRINT, sym.substr(6));
   }
   else if (sym == "JUMP.ABS")
   {
-    t.type = token_type_t::JUMP_ABS;
+    t.type = Token::Type::JUMP_ABS;
   }
   else if (sym == "JUMP.STACK")
   {
-    t.type = token_type_t::JUMP_STACK;
+    t.type = Token::Type::JUMP_STACK;
   }
   else if (initial_match(sym, "JUMP.IF."))
   {
-    t = Token(token_type_t::JUMP_IF, sym.substr(8));
+    t = Token(Token::Type::JUMP_IF, sym.substr(8));
   }
   else if (sym == "CALL.STACK")
   {
-    t.type = token_type_t::CALL_STACK;
+    t.type = Token::Type::CALL_STACK;
   }
   else if (sym == "CALL")
   {
-    t.type = token_type_t::CALL;
+    t.type = Token::Type::CALL;
   }
   else if (sym == "RET")
   {
-    t.type = token_type_t::RET;
+    t.type = Token::Type::RET;
   }
   else if (sym == "GLOBAL")
   {
-    t.type = token_type_t::GLOBAL;
+    t.type = Token::Type::GLOBAL;
   }
   else
   {
-    t.type = token_type_t::SYMBOL;
+    t.type = Token::Type::SYMBOL;
   }
 
   if (t.content == "")
@@ -238,7 +238,7 @@ Token tokenise_literal_number(string_view &source, size_t &column)
   string digits{source.substr(0, end)};
   source.remove_prefix(end);
 
-  Token t{token_type_t::LITERAL_NUMBER, (is_negative ? "-" : "") + digits,
+  Token t{Token::Type::LITERAL_NUMBER, (is_negative ? "-" : "") + digits,
           column};
 
   column += digits.size() + (is_negative ? 1 : 0);
@@ -256,7 +256,7 @@ Token tokenise_literal_hex(string_view &source, size_t &column)
   string digits{source.substr(0, end)};
   source.remove_prefix(end);
 
-  Token t = {token_type_t::LITERAL_NUMBER, "0x" + digits, column};
+  Token t = {Token::Type::LITERAL_NUMBER, "0x" + digits, column};
 
   column += digits.size() + 1;
   return t;
@@ -299,13 +299,13 @@ pair<Token, lerr_t> tokenise_literal_char(string_view &source, size_t &column,
                               column, line));
       break;
     }
-    t = Token{token_type_t::LITERAL_CHAR, std::to_string(escape), column};
+    t = Token{Token::Type::LITERAL_CHAR, std::to_string(escape), column};
     column += 4;
     source.remove_prefix(4);
   }
   else
   {
-    t = Token(token_type_t::LITERAL_CHAR, std::to_string(source[1]));
+    t = Token(Token::Type::LITERAL_CHAR, std::to_string(source[1]));
     column += 3;
     source.remove_prefix(3);
   }
@@ -315,7 +315,7 @@ pair<Token, lerr_t> tokenise_literal_char(string_view &source, size_t &column,
 Token tokenise_literal_string(string_view &source, size_t &column, size_t end)
 {
   source.remove_prefix(1);
-  Token token{token_type_t::LITERAL_STRING, string(source.substr(0, end - 1)),
+  Token token{Token::Type::LITERAL_STRING, string(source.substr(0, end - 1)),
               column};
   source.remove_prefix(end);
   column += end + 1;
@@ -359,7 +359,7 @@ lerr_t tokenise_buffer(string_view source, std::vector<Token *> &tokens)
     }
     else if (first == '*')
     {
-      t = Token(token_type_t::STAR, "", column);
+      t = Token(Token::Type::STAR, "", column);
       source.remove_prefix(1);
     }
     else if (first == '\"')
@@ -428,101 +428,101 @@ std::ostream &operator<<(std::ostream &os, Token &t)
 Token::Token()
 {}
 
-Token::Token(token_type_t type, string content, size_t col, size_t line)
+Token::Token(Token::Type type, string content, size_t col, size_t line)
     : type{type}, column{col}, line{line}, content{content}
 {}
 
-const char *token_type_as_cstr(token_type_t type)
+const char *token_type_as_cstr(Token::Type type)
 {
   switch (type)
   {
-  case token_type_t::PP_USE:
+  case Token::Type::PP_USE:
     return "PP_USE";
-  case token_type_t::PP_CONST:
+  case Token::Type::PP_CONST:
     return "PP_CONST";
-  case token_type_t::PP_END:
+  case Token::Type::PP_END:
     return "PP_END";
-  case token_type_t::PP_REFERENCE:
+  case Token::Type::PP_REFERENCE:
     return "PP_REFERENCE";
-  case token_type_t::GLOBAL:
+  case Token::Type::GLOBAL:
     return "GLOBAL";
-  case token_type_t::STAR:
+  case Token::Type::STAR:
     return "STAR";
-  case token_type_t::LITERAL_STRING:
+  case Token::Type::LITERAL_STRING:
     return "LITERAL_STRING";
-  case token_type_t::LITERAL_NUMBER:
+  case Token::Type::LITERAL_NUMBER:
     return "LITERAL_NUMBER";
-  case token_type_t::LITERAL_CHAR:
+  case Token::Type::LITERAL_CHAR:
     return "LITERAL_CHAR";
-  case token_type_t::NOOP:
+  case Token::Type::NOOP:
     return "NOOP";
-  case token_type_t::HALT:
+  case Token::Type::HALT:
     return "HALT";
-  case token_type_t::PUSH:
+  case Token::Type::PUSH:
     return "PUSH";
-  case token_type_t::POP:
+  case Token::Type::POP:
     return "POP";
-  case token_type_t::PUSH_REG:
+  case Token::Type::PUSH_REG:
     return "PUSH_REG";
-  case token_type_t::MOV:
+  case Token::Type::MOV:
     return "MOV";
-  case token_type_t::DUP:
+  case Token::Type::DUP:
     return "DUP";
-  case token_type_t::MALLOC:
+  case Token::Type::MALLOC:
     return "MALLOC";
-  case token_type_t::MALLOC_STACK:
+  case Token::Type::MALLOC_STACK:
     return "MALLOC_STACK";
-  case token_type_t::MSET:
+  case Token::Type::MSET:
     return "MSET";
-  case token_type_t::MSET_STACK:
+  case Token::Type::MSET_STACK:
     return "MSET_STACK";
-  case token_type_t::MGET:
+  case Token::Type::MGET:
     return "MGET";
-  case token_type_t::MGET_STACK:
+  case Token::Type::MGET_STACK:
     return "MGET_STACK";
-  case token_type_t::MDELETE:
+  case Token::Type::MDELETE:
     return "MDELETE";
-  case token_type_t::MSIZE:
+  case Token::Type::MSIZE:
     return "MSIZE";
-  case token_type_t::NOT:
+  case Token::Type::NOT:
     return "NOT";
-  case token_type_t::OR:
+  case Token::Type::OR:
     return "OR";
-  case token_type_t::AND:
+  case Token::Type::AND:
     return "AND";
-  case token_type_t::XOR:
+  case Token::Type::XOR:
     return "XOR";
-  case token_type_t::EQ:
+  case Token::Type::EQ:
     return "EQ";
-  case token_type_t::LT:
+  case Token::Type::LT:
     return "LT";
-  case token_type_t::LTE:
+  case Token::Type::LTE:
     return "LTE";
-  case token_type_t::GT:
+  case Token::Type::GT:
     return "GT";
-  case token_type_t::GTE:
+  case Token::Type::GTE:
     return "GTE";
-  case token_type_t::PLUS:
+  case Token::Type::PLUS:
     return "PLUS";
-  case token_type_t::SUB:
+  case Token::Type::SUB:
     return "SUB";
-  case token_type_t::MULT:
+  case Token::Type::MULT:
     return "MULT";
-  case token_type_t::PRINT:
+  case Token::Type::PRINT:
     return "PRINT";
-  case token_type_t::JUMP_ABS:
+  case Token::Type::JUMP_ABS:
     return "JUMP_ABS";
-  case token_type_t::JUMP_STACK:
+  case Token::Type::JUMP_STACK:
     return "JUMP_STACK";
-  case token_type_t::JUMP_IF:
+  case Token::Type::JUMP_IF:
     return "JUMP_IF";
-  case token_type_t::CALL:
+  case Token::Type::CALL:
     return "CALL";
-  case token_type_t::CALL_STACK:
+  case Token::Type::CALL_STACK:
     return "CALL_STACK";
-  case token_type_t::RET:
+  case Token::Type::RET:
     return "RET";
-  case token_type_t::SYMBOL:
+  case Token::Type::SYMBOL:
     return "SYMBOL";
   }
   return "";

@@ -31,10 +31,10 @@ pp_err_t preprocess_use_blocks(const vector<Token *> &tokens,
   for (size_t i = 0; i < tokens.size(); ++i)
   {
     Token *t = tokens[i];
-    if (t->type == token_type_t::PP_USE)
+    if (t->type == Token::Type::PP_USE)
     {
       if (i + 1 >= tokens.size() ||
-          tokens[i + 1]->type != token_type_t::LITERAL_STRING)
+          tokens[i + 1]->type != Token::Type::LITERAL_STRING)
       {
         VCLEAR(vec_out);
         vec_out.clear();
@@ -81,17 +81,17 @@ pp_err_t preprocess_const_blocks(const vector<Token *> &tokens,
   for (size_t i = 0; i < tokens.size(); ++i)
   {
     Token *t = tokens[i];
-    if (t->type == token_type_t::PP_CONST)
+    if (t->type == Token::Type::PP_CONST)
     {
       string_view capture;
-      if (i + 1 >= tokens.size() || tokens[i + 1]->type != token_type_t::SYMBOL)
+      if (i + 1 >= tokens.size() || tokens[i + 1]->type != Token::Type::SYMBOL)
         return pp_err_type_t::EXPECTED_NAME;
 
       capture = tokens[++i]->content;
 
       ++i;
       size_t block_start = i, block_end = 0;
-      for (; i < tokens.size() && tokens[i]->type != token_type_t::PP_END; ++i)
+      for (; i < tokens.size() && tokens[i]->type != Token::Type::PP_END; ++i)
         continue;
 
       if (i == tokens.size())
@@ -115,11 +115,10 @@ pp_err_t preprocess_const_blocks(const vector<Token *> &tokens,
     {
       Token *token = tokens[i];
       // Skip the tokens that construct the const
-      if (token->type == token_type_t::PP_CONST)
-        for (; i < tokens.size() && tokens[i]->type != token_type_t::PP_END;
-             ++i)
+      if (token->type == Token::Type::PP_CONST)
+        for (; i < tokens.size() && tokens[i]->type != Token::Type::PP_END; ++i)
           continue;
-      else if (token->type == token_type_t::PP_REFERENCE)
+      else if (token->type == Token::Type::PP_REFERENCE)
       {
         auto it = blocks.find(token->content);
         if (it == blocks.end())

@@ -18,65 +18,63 @@
 #include <tuple>
 #include <vector>
 
-enum class token_type_t
-{
-  PP_CONST,     // %const(<symbol>)...
-  PP_USE,       // %use <string>
-  PP_END,       // %end
-  PP_REFERENCE, // $<symbol>
-  GLOBAL,
-  STAR,
-  LITERAL_NUMBER,
-  LITERAL_CHAR,
-  LITERAL_STRING,
-  NOOP,
-  HALT,
-  PUSH,
-  POP,
-  PUSH_REG,
-  MOV,
-  DUP,
-  MALLOC,
-  MALLOC_STACK,
-  MSET,
-  MSET_STACK,
-  MGET,
-  MGET_STACK,
-  MDELETE,
-  MSIZE,
-  NOT,
-  OR,
-  AND,
-  XOR,
-  EQ,
-  LT,
-  LTE,
-  GT,
-  GTE,
-  PLUS,
-  SUB,
-  MULT,
-  PRINT,
-  JUMP_ABS,
-  JUMP_STACK,
-  JUMP_IF,
-  CALL,
-  CALL_STACK,
-  RET,
-  SYMBOL,
-};
-
-const char *token_type_as_cstr(token_type_t type);
-
 struct Token
 {
-  token_type_t type;
+  enum class Type
+  {
+    PP_CONST,     // %const(<symbol>)...
+    PP_USE,       // %use <string>
+    PP_END,       // %end
+    PP_REFERENCE, // $<symbol>
+    GLOBAL,
+    STAR,
+    LITERAL_NUMBER,
+    LITERAL_CHAR,
+    LITERAL_STRING,
+    NOOP,
+    HALT,
+    PUSH,
+    POP,
+    PUSH_REG,
+    MOV,
+    DUP,
+    MALLOC,
+    MALLOC_STACK,
+    MSET,
+    MSET_STACK,
+    MGET,
+    MGET_STACK,
+    MDELETE,
+    MSIZE,
+    NOT,
+    OR,
+    AND,
+    XOR,
+    EQ,
+    LT,
+    LTE,
+    GT,
+    GTE,
+    PLUS,
+    SUB,
+    MULT,
+    PRINT,
+    JUMP_ABS,
+    JUMP_STACK,
+    JUMP_IF,
+    CALL,
+    CALL_STACK,
+    RET,
+    SYMBOL,
+  } type;
   size_t column, line;
   std::string content;
 
   Token();
-  Token(token_type_t, std::string, size_t col = 0, size_t line = 0);
+  Token(Token::Type, std::string, size_t col = 0, size_t line = 0);
 };
+
+const char *token_type_as_cstr(Token::Type type);
 
 std::ostream &operator<<(std::ostream &, Token &);
 
