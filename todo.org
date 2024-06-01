@@ -3,6 +3,29 @@
 #+date: 2023-11-02
 #+startup: noindent
 
+* WIP Write assembler in a different language :ASM:
+While the runtime and base library needs to deal with only
+binary, the assembler has to deal with string inputs and a larger
+variety of bugs.  As the base library is written in C, and is all that
+is necessary to write a program that targets the virtual machine, we
+could realistically use another language to write the assembler in via
+FFI with minimal pain.
+
+Languages in the competition:
++ C++
++ Rust
++ Python
+
+2024-04-14: Chose C++ cos it will require the least effort to rewrite
+the currently existing codebase while still leveraging some less
+efficient but incredibly useful features.
+* TODO Rewrite lexer
+~push.magic~ is a valid PUSH token according to the current lexer.
+I'd like to clamp down on this obvious error at the lexer itself, so
+the parser can be dedicated to just dealing with address resolution
+and conversion to opcodes.
+
+How about an enum which represents the possible type of the operator?
 * TODO Better documentation [0%] :DOC:
 ** TODO Comment coverage [0%]
 *** TODO ASM [0%]
@@ -26,22 +49,6 @@ A call should look something like this:
   $name 1 2 3
 #+end_src
 and those tokens will be substituted literally in the macro body.
-* WIP Write assembler in a different language :ASM:
-While the runtime and base library needs to deal with only
-binary, the assembler has to deal with string inputs and a larger
-variety of bugs.  As the base library is written in C, and is all that
-is necessary to write a program that targets the virtual machine, we
-could realistically use another language to write the assembler in via
-FFI with minimal pain.
-
-Languages in the competition:
-+ C++
-+ Rust
-+ Python
-
-2024-04-14: Chose C++ cos it will require the least effort to rewrite
-the currently existing codebase while still leveraging some less
-efficient but incredibly useful features.
 * TODO Rewrite preprocesser to create a custom unit instead of token streams
 ** Problem
 A problem that occurs in the preprocessor is token column and line
