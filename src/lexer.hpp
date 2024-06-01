@@ -68,17 +68,17 @@ enum class token_type_t
 
 const char *token_type_as_cstr(token_type_t type);
 
-struct token_t
+struct Token
 {
   token_type_t type;
   size_t column, line;
   std::string content;
 
-  token_t();
-  token_t(token_type_t, std::string, size_t col = 0, size_t line = 0);
+  Token();
+  Token(token_type_t, std::string, size_t col = 0, size_t line = 0);
 };
 
-std::ostream &operator<<(std::ostream &, token_t &);
+std::ostream &operator<<(std::ostream &, Token &);
 
 enum class lerr_type_t
 {
@@ -101,6 +101,6 @@ struct lerr_t
 
 std::ostream &operator<<(std::ostream &, lerr_t &);
 
-lerr_t tokenise_buffer(std::string_view, std::vector<token_t *> &);
+lerr_t tokenise_buffer(std::string_view, std::vector<Token *> &);
 
 #endif

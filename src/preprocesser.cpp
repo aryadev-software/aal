@@ -20,17 +20,17 @@ using std::pair, std::vector, std::make_pair, std::string, std::string_view;
 
 #define VCLEAR(V)                       \
   std::for_each((V).begin(), (V).end(), \
-                [](token_t *t)          \
+                [](Token *t)            \
                 {                       \
                   delete t;             \
                 });
 
-pp_err_t preprocess_use_blocks(const vector<token_t *> &tokens,
-                               vector<token_t *> &vec_out)
+pp_err_t preprocess_use_blocks(const vector<Token *> &tokens,
+                               vector<Token *> &vec_out)
 {
   for (size_t i = 0; i < tokens.size(); ++i)
   {
-    token_t *t = tokens[i];
+    Token *t = tokens[i];
     if (t->type == token_type_t::PP_USE)
     {
       if (i + 1 >= tokens.size() ||
@@ -41,8 +41,8 @@ pp_err_t preprocess_use_blocks(const vector<token_t *> &tokens,
         return pp_err_t(pp_err_type_t::EXPECTED_STRING, t);
       }
 
-      token_t *name = tokens[i + 1];
-      auto source   = read_file(name->content.c_str());
+      Token *name = tokens[i + 1];
+      auto source = read_file(name->content.c_str());
       if (!source)
       {
         VCLEAR(vec_out);
@@ -50,7 +50,7 @@ pp_err_t preprocess_use_blocks(const vector<token_t *> &tokens,
         return pp_err_t(pp_err_type_t::FILE_NONEXISTENT, name);
       }
 
-      std::vector<token_t *> ftokens;
+      std::vector<Token *> ftokens;
       lerr_t lerr = tokenise_buffer(source.value(), ftokens);
       if (lerr.type != lerr_type_t::OK)
       {
@@ -64,7 +64,7 @@ pp_err_t preprocess_use_blocks(const vector<token_t *> &tokens,
       ++i;
     }
     else
-      vec_out.push_back(new token_t{*t});
+      vec_out.push_back(new Token{*t});
   }
   return pp_err_t();
 }
@@ -74,13 +74,13 @@ struct const_t
   size_t start, end;
 };
 
-pp_err_t preprocess_const_blocks(const vector<token_t *> &tokens,
-                                 vector<token_t *> &vec_out)
+pp_err_t preprocess_const_blocks(const vector<Token *> &tokens,
+                                 vector<Token *> &vec_out)
 {
   std::unordered_map<string_view, const_t> blocks;
   for (size_t i = 0; i < tokens.size(); ++i)
   {
-    token_t *t = tokens[i];
+    Token *t = tokens[i];
     if (t->type == token_type_t::PP_CONST)
     {
       string_view capture;
@@ -106,14 +106,14 @@ pp_err_t preprocess_const_blocks(const vector<token_t *> &tokens,
   if (blocks.size() == 0)
   {
     // Just construct a new vector and carry on
-    for (token_t *token : tokens)
-      vec_out.push_back(new token_t{*token});
+    for (Token *token : tokens)
+      vec_out.push_back(new Token{*token});
   }
   else
   {
     for (size_t i = 0; i < tokens.size(); ++i)
     {
-      token_t *token = tokens[i];
+      Token *token = tokens[i];
       // Skip the tokens that construct the const
       if (token->type == token_type_t::PP_CONST)
         for (; i < tokens.size() && tokens[i]->type != token_type_t::PP_END;
@@ -131,20 +131,19 @@ pp_err_t preprocess_const_blocks(const vector<token_t *> &tokens,
 
         const_t block = it->second;
         for (size_t i = block.start; i < block.end; ++i)
-          vec_out.push_back(new token_t{*tokens[i]});
+          vec_out.push_back(new Token{*tokens[i]});
       }
       else
-        vec_out.push_back(new token_t{*token});
+        vec_out.push_back(new Token{*token});
     }
   }
 
   return pp_err_t();
 }
 
-pp_err_t preprocesser(const vector<token_t *> &tokens,
-                      vector<token_t *> &vec_out)
+pp_err_t preprocesser(const vector<Token *> &tokens, vector<Token *> &vec_out)
 {
-  vector<token_t *> use_block_tokens;
+  vector<Token *> use_block_tokens;
   pp_err_t pperr = preprocess_use_blocks(tokens, use_block_tokens);
   if (pperr.type != pp_err_type_t::OK)
   {
@@ -152,7 +151,7 @@ pp_err_t preprocesser(const vector<token_t *> &tokens,
     return pperr;
   }
 
-  vector<token_t *> const_block_tokens;
+  vector<Token *> const_block_tokens;
   pperr = preprocess_const_blocks(use_block_tokens, const_block_tokens);
   if (pperr.type != pp_err_type_t::OK)
   {
@@ -168,8 +167,7 @@ pp_err_t preprocesser(const vector<token_t *> &tokens,
 }
 
 // TODO: Implement this
-pp_err_t preprocess_macro_blocks(const vector<token_t *> &,
-                                 vector<token_t *> &);
+pp_err_t preprocess_macro_blocks(const vector<Token *> &, vector<Token *> &);
 
 std::ostream &operator<<(std::ostream &os, pp_err_t &err)
 {
@@ -201,15 +199,15 @@ pp_err_t::pp_err_t() : reference{nullptr}, type{pp_err_type_t::OK}, lerr{}
 pp_err_t::pp_err_t(pp_err_type_t e) : reference{nullptr}, type{e}, lerr{}
 {}
 
-pp_err_t::pp_err_t(pp_err_type_t err, const token_t *ref)
+pp_err_t::pp_err_t(pp_err_type_t err, const Token *ref)
     : reference{ref}, type{err}
 {}
 
-pp_err_t::pp_err_t(pp_err_type_t err, const token_t *ref, lerr_t lerr)
+pp_err_t::pp_err_t(pp_err_type_t err, const Token *ref, lerr_t lerr)
     : reference{ref}, type{err}, lerr{lerr}
 {}
 
-// pp_unit_t::pp_unit_t(const token_t *const token) : resolved{false},
+// pp_unit_t::pp_unit_t(const Token *const token) : resolved{false},
 // token{token}
 // {}
 

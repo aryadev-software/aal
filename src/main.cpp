@@ -66,7 +66,7 @@ int main(int argc, const char *argv[])
   string source_str;
   string_view original;
   string_view src;
-  vector<token_t *> tokens, preprocessed_tokens;
+  vector<Token *> tokens, preprocessed_tokens;
   lerr_t lerr;
   pp_err_t pp_err;
 
