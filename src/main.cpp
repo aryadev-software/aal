@@ -85,7 +85,7 @@ int main(int argc, const char *argv[])
   }
   original = string_view{source_str};
   src      = string_view{source_str};
-  lerr     = tokenise_buffer(src, tokens);
+  lerr     = tokenise_buffer(source_name, src, tokens);
 
   if (lerr.type != Lexer ::Err::Type::OK)
   {

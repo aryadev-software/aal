@@ -482,7 +482,8 @@ namespace Lexer
     return token;
   }
 
-  Err tokenise_buffer(string_view source, std::vector<Token *> &tokens)
+  Err tokenise_buffer(string_view source_name, string_view source,
+                      std::vector<Token *> &tokens)
   {
     size_t column = 0, line = 1;
     while (source.size() > 0)
@@ -571,8 +572,9 @@ namespace Lexer
 
       if (is_token)
       {
-        t.line     = line;
-        Token *acc = new Token{t};
+        t.source_name = source_name;
+        t.line        = line;
+        Token *acc    = new Token{t};
         tokens.push_back(acc);
       }
     }
@@ -580,17 +582,20 @@ namespace Lexer
   }
 
   Token::Token()
-  {}
+  {
+  }
 
   Token::Token(Token::Type type, string_view content, size_t col, size_t line,
                OperandType optype)
-      : type{type}, column{col}, line{line}, content{content},
-        operand_type{optype}
-  {}
+      : type{type}, operand_type{optype}, column{col}, line{line},
+        content{content}
+  {
+  }
 
   Err::Err(Err::Type type, size_t col, size_t line)
       : col{col}, line{line}, type{type}
-  {}
+  {
+  }
 
   std::string to_string(const Token::Type &type)
   {

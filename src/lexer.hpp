@@ -27,15 +27,20 @@ namespace Lexer
   {
     enum class Type
     {
+      // Preprocessor and other parse time constants
       PP_CONST,     // %const(<symbol>)...
       PP_USE,       // %use <string>
       PP_END,       // %end
       PP_REFERENCE, // $<symbol>
       GLOBAL,
       STAR,
+      // Literals
       LITERAL_NUMBER,
       LITERAL_CHAR,
       LITERAL_STRING,
+      SYMBOL,
+
+      // Instruction
       NOOP,
       HALT,
       PUSH,
@@ -70,11 +75,7 @@ namespace Lexer
       CALL,
       CALL_STACK,
       RET,
-      SYMBOL,
     } type;
-    size_t column, line;
-    std::string content;
-
     enum class OperandType
     {
       NIL,
@@ -86,9 +87,12 @@ namespace Lexer
       LONG
     } operand_type;
 
+    size_t column, line;
+    std::string source_name, content;
+
     Token();
     Token(Token::Type, std::string_view content = "", size_t col = 0,
-          size_t line = 0, OperandType optype = OperandType::NIL);
+          size_t line = 0, OperandType type = OperandType::NIL);
   };
 
   struct Err
@@ -110,7 +114,8 @@ namespace Lexer
     Err(Type type = Type::OK, size_t col = 0, size_t line = 0);
   };
 
-  Err tokenise_buffer(std::string_view, std::vector<Token *> &);
+  Err tokenise_buffer(std::string_view source_name, std::string_view content,
+                      std::vector<Token *> &vec);
 
   std::string to_string(const Token::Type &);
   std::string to_string(const Token::OperandType &);
