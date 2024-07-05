@@ -21,6 +21,7 @@ extern "C"
 
 #include <algorithm>
 #include <sstream>
+#include <unordered_map>
 
 #include <src/lexer.hpp>
 
@@ -46,66 +47,65 @@ namespace Lexer
     return (src.size() > match.size() && src.substr(0, match.size()) == match);
   }
 
-  Err tokenise_unsigned_type(const string_view &symbol,
-                             Token::OperandType &type, size_t column,
-                             size_t line)
+  Err::Type tokenise_unsigned_type(const string_view &symbol,
+                                   Token::OperandType &type)
   {
     if (symbol == "BYTE")
     {
       type = Token::OperandType::BYTE;
-      return Err{};
+      return Err::Type::OK;
     }
     else if (symbol == "HWORD")
     {
       type = Token::OperandType::HWORD;
-      return Err{};
+      return Err::Type::OK;
     }
     else if (symbol == "WORD")
     {
       type = Token::OperandType::WORD;
-      return Err{};
+      return Err::Type::OK;
     }
-    return Err{Err::Type::EXPECTED_UNSIGNED_TYPE_SUFFIX, column, line};
+    return Err::Type::EXPECTED_UNSIGNED_TYPE_SUFFIX;
   }
 
-  Err tokenise_signed_type(const string_view &symbol, Token::OperandType &type,
-                           size_t column, size_t line)
+  Err::Type tokenise_signed_type(const string_view &symbol,
+                                 Token::OperandType &type)
   {
     if (symbol == "BYTE")
     {
       type = Token::OperandType::BYTE;
-      return Err{};
+      return Err::Type::OK;
     }
     else if (symbol == "CHAR")
     {
       type = Token::OperandType::CHAR;
-      return Err{};
+      return Err::Type::OK;
     }
     else if (symbol == "HWORD")
     {
       type = Token::OperandType::HWORD;
-      return Err{};
+      return Err::Type::OK;
     }
     else if (symbol == "INT")
     {
       type = Token::OperandType::INT;
-      return Err{};
+      return Err::Type::OK;
     }
     else if (symbol == "WORD")
     {
       type = Token::OperandType::WORD;
-      return Err{};
+      return Err::Type::OK;
     }
     else if (symbol == "LONG")
     {
       type = Token::OperandType::LONG;
-      return Err{};
+      return Err::Type::OK;
     }
-    return Err{Err::Type::EXPECTED_TYPE_SUFFIX, column, line};
+    return Err::Type::EXPECTED_TYPE_SUFFIX;
   }
 
-  Err tokenise_symbol(string_view &source, size_t &column, size_t line,
-                      Token &token)
+  Err tokenise_symbol(string_view &source_name, string_view &source,
+                      size_t &column, size_t line, Token &token)
   {
     auto end = source.find_first_not_of(VALID_SYMBOL);
     if (end == string::npos)
@@ -114,269 +114,99 @@ namespace Lexer
     source.remove_prefix(end);
     std::transform(sym.begin(), sym.end(), sym.begin(), ::toupper);
 
-    Token t{};
+    // Tokens that are fixed i.e. have no variations.  This is because they have
+    // no type.
+    std::unordered_map<std::string, Token::Type> fixed_map = {
+        {"%CONST", Token::Type::PP_CONST},
+        {"%USE", Token::Type::PP_USE},
+        {"%END", Token::Type::PP_END},
+        {"NOOP", Token::Type::NOOP},
+        {"HALT", Token::Type::HALT},
+        {"MDELETE", Token::Type::MDELETE},
+        {"MSIZE", Token::Type::MSIZE},
+        {"JUMP.ABS", Token::Type::JUMP_ABS},
+        {"JUMP.STACK", Token::Type::JUMP_STACK},
+        {"CALL.STACK", Token::Type::CALL_STACK},
+        {"CALL", Token::Type::CALL},
+        {"RET", Token::Type::RET},
+        {"GLOBAL", Token::Type::GLOBAL},
+    };
 
-    if (sym == "%CONST")
+    // Tokens that have different types, encoded by the string following some
+    // root string.  The type is found by the type_tokeniser function.
+    struct InitialMatch
     {
-      token.type = Token::Type::PP_CONST;
-    }
-    else if (sym == "%USE")
+      std::string match;
+      Token::Type type;
+      Err::Type (*type_tokeniser)(const std::string_view &,
+                                  Token::OperandType &);
+    } typed_map[] = {
+        {"PUSH.REG.", Token::Type::PUSH_REG, tokenise_unsigned_type},
+        {"PUSH.", Token::Type::PUSH, tokenise_unsigned_type},
+        {"POP.", Token::Type::POP, tokenise_unsigned_type},
+        {"MOV.", Token::Type::MOV, tokenise_unsigned_type},
+        {"DUP.", Token::Type::DUP, tokenise_unsigned_type},
+        {"MALLOC.STACK.", Token::Type::MALLOC_STACK, tokenise_unsigned_type},
+        {"MALLOC.", Token::Type::MALLOC, tokenise_unsigned_type},
+        {"MSET.STACK.", Token::Type::MSET_STACK, tokenise_unsigned_type},
+        {"MSET.", Token::Type::MSET, tokenise_unsigned_type},
+        {"MGET.STACK.", Token::Type::MGET_STACK, tokenise_unsigned_type},
+        {"MGET.", Token::Type::MGET, tokenise_unsigned_type},
+        {"NOT.", Token::Type::NOT, tokenise_unsigned_type},
+        {"OR.", Token::Type::OR, tokenise_unsigned_type},
+        {"AND.", Token::Type::AND, tokenise_unsigned_type},
+        {"XOR.", Token::Type::XOR, tokenise_unsigned_type},
+        {"EQ.", Token::Type::EQ, tokenise_unsigned_type},
+        {"LTE.", Token::Type::LTE, tokenise_signed_type},
+        {"LT.", Token::Type::LT, tokenise_signed_type},
+        {"GTE.", Token::Type::GTE, tokenise_signed_type},
+        {"GT.", Token::Type::GT, tokenise_signed_type},
+        {"SUB.", Token::Type::SUB, tokenise_signed_type},
+        {"PLUS.", Token::Type::PLUS, tokenise_signed_type},
+        {"MULT.", Token::Type::MULT, tokenise_signed_type},
+        {"PRINT.", Token::Type::PRINT, tokenise_signed_type},
+        {"JUMP.IF.", Token::Type::JUMP_IF, tokenise_unsigned_type},
+    };
+
+    bool found = false;
+
+    if (fixed_map.find(sym) != fixed_map.end())
     {
-      token.type = Token::Type::PP_USE;
-    }
-    else if (sym == "%END")
-    {
-      token.type = Token::Type::PP_END;
-    }
-    else if (sym[0] == '%')
-    {
-      return Err(Err::Type::INVALID_PREPROCESSOR_DIRECTIVE, column, line);
+      token.type         = fixed_map[sym];
+      token.operand_type = Token::OperandType::NIL;
+      found              = true;
     }
     else if (sym.size() > 1 && sym[0] == '$')
     {
       token = Token{Token::Type::PP_REFERENCE, sym.substr(1)};
+      found = true;
     }
-    else if (sym == "NOOP")
+    // Can't be a preprocesser directive as we've classified them all.
+    else if (sym[0] == '%')
+      return Err(Err::Type::INVALID_PREPROCESSOR_DIRECTIVE, column, line,
+                 source_name);
+
+    // NOTE: We only check the typed operators (i.e. initial match tokens) IF we
+    // cannot find it by previous methods.
+    for (size_t i = 0; !found && i < sizeof(typed_map) / sizeof(typed_map[0]);
+         ++i)
     {
-      token.type = Token::Type::NOOP;
+      if (initial_match(sym, typed_map[i].match))
+      {
+        token.type = typed_map[i].type;
+
+        const auto offset = typed_map[i].match.size();
+        Err::Type type =
+            typed_map[i].type_tokeniser(sym.substr(offset), token.operand_type);
+        if (type != Err::Type::OK)
+          return Err{type, column + offset, line, source_name};
+        found = true;
+      }
     }
-    else if (sym == "HALT")
-    {
-      token.type = Token::Type::HALT;
-    }
-    else if (initial_match(sym, "PUSH.REG."))
-    {
-      token.type = Token::Type::PUSH_REG;
-      Err err    = tokenise_unsigned_type(std::string_view{sym}.substr(9),
-                                          token.operand_type, column + 9, line);
-      if (err.type != Err::Type::OK)
-        return err;
-    }
-    else if (initial_match(sym, "PUSH."))
-    {
-      token.type = Token::Type::PUSH;
-      Err err    = tokenise_unsigned_type(std::string_view{sym}.substr(5),
-                                          token.operand_type, column + 5, line);
-      if (err.type != Err::Type::OK)
-        return err;
-    }
-    else if (initial_match(sym, "POP."))
-    {
-      token.type = Token::Type::POP;
-      Err err    = tokenise_unsigned_type(std::string_view{sym}.substr(4),
-                                          token.operand_type, column + 4, line);
-      if (err.type != Err::Type::OK)
-        return err;
-    }
-    else if (initial_match(sym, "MOV."))
-    {
-      token.type = Token::Type::MOV;
-      Err err    = tokenise_unsigned_type(std::string_view{sym}.substr(4),
-                                          token.operand_type, column + 4, line);
-      if (err.type != Err::Type::OK)
-        return err;
-    }
-    else if (initial_match(sym, "DUP."))
-    {
-      token.type = Token::Type::DUP;
-      Err err    = tokenise_unsigned_type(std::string_view{sym}.substr(4),
-                                          token.operand_type, column + 4, line);
-      if (err.type != Err::Type::OK)
-        return err;
-    }
-    else if (initial_match(sym, "MALLOC.STACK."))
-    {
-      token.type = Token::Type::MALLOC_STACK;
-      Err err    = tokenise_unsigned_type(std::string_view{sym}.substr(13),
-                                          token.operand_type, column + 13, line);
-      if (err.type != Err::Type::OK)
-        return err;
-    }
-    else if (initial_match(sym, "MALLOC."))
-    {
-      token.type = Token::Type::MALLOC;
-      Err err    = tokenise_unsigned_type(std::string_view{sym}.substr(7),
-                                          token.operand_type, column + 7, line);
-      if (err.type != Err::Type::OK)
-        return err;
-    }
-    else if (initial_match(sym, "MSET.STACK."))
-    {
-      token.type = Token::Type::MSET_STACK;
-      Err err    = tokenise_unsigned_type(std::string_view{sym}.substr(11),
-                                          token.operand_type, column + 11, line);
-      if (err.type != Err::Type::OK)
-        return err;
-    }
-    else if (initial_match(sym, "MSET."))
-    {
-      token.type = Token::Type::MSET;
-      Err err    = tokenise_unsigned_type(std::string_view{sym}.substr(5),
-                                          token.operand_type, column + 5, line);
-      if (err.type != Err::Type::OK)
-        return err;
-    }
-    else if (initial_match(sym, "MGET.STACK."))
-    {
-      token.type = Token::Type::MGET_STACK;
-      Err err    = tokenise_unsigned_type(std::string_view{sym}.substr(11),
-                                          token.operand_type, column + 11, line);
-      if (err.type != Err::Type::OK)
-        return err;
-    }
-    else if (initial_match(sym, "MGET."))
-    {
-      token.type = Token::Type::MGET;
-      Err err    = tokenise_unsigned_type(std::string_view{sym}.substr(5),
-                                          token.operand_type, column + 5, line);
-      if (err.type != Err::Type::OK)
-        return err;
-    }
-    else if (sym == "MDELETE")
-    {
-      token.type = Token::Type::MDELETE;
-    }
-    else if (sym == "MSIZE")
-    {
-      token.type = Token::Type::MSIZE;
-    }
-    else if (initial_match(sym, "NOT."))
-    {
-      token.type = Token::Type::NOT;
-      Err err    = tokenise_unsigned_type(std::string_view{sym}.substr(4),
-                                          token.operand_type, column + 4, line);
-      if (err.type != Err::Type::OK)
-        return err;
-    }
-    else if (initial_match(sym, "OR."))
-    {
-      token.type = Token::Type::OR;
-      Err err    = tokenise_unsigned_type(std::string_view{sym}.substr(3),
-                                          token.operand_type, column + 3, line);
-      if (err.type != Err::Type::OK)
-        return err;
-    }
-    else if (initial_match(sym, "AND."))
-    {
-      token.type = Token::Type::AND;
-      Err err    = tokenise_unsigned_type(std::string_view{sym}.substr(4),
-                                          token.operand_type, column + 4, line);
-      if (err.type != Err::Type::OK)
-        return err;
-    }
-    else if (initial_match(sym, "XOR."))
-    {
-      token.type = Token::Type::XOR;
-      Err err    = tokenise_unsigned_type(std::string_view{sym}.substr(4),
-                                          token.operand_type, column + 4, line);
-      if (err.type != Err::Type::OK)
-        return err;
-    }
-    else if (initial_match(sym, "EQ."))
-    {
-      token.type = Token::Type::EQ;
-      Err err    = tokenise_unsigned_type(std::string_view{sym}.substr(3),
-                                          token.operand_type, column + 3, line);
-      if (err.type != Err::Type::OK)
-        return err;
-    }
-    else if (initial_match(sym, "LTE."))
-    {
-      token.type = Token::Type::LTE;
-      Err err    = tokenise_signed_type(std::string_view{sym}.substr(4),
-                                        token.operand_type, column + 4, line);
-      if (err.type != Err::Type::OK)
-        return err;
-    }
-    else if (initial_match(sym, "LT."))
-    {
-      token.type = Token::Type::LT;
-      Err err    = tokenise_signed_type(std::string_view{sym}.substr(3),
-                                        token.operand_type, column + 3, line);
-      if (err.type != Err::Type::OK)
-        return err;
-    }
-    else if (initial_match(sym, "GTE."))
-    {
-      token.type = Token::Type::GTE;
-      Err err    = tokenise_signed_type(std::string_view{sym}.substr(4),
-                                        token.operand_type, column + 4, line);
-      if (err.type != Err::Type::OK)
-        return err;
-    }
-    else if (initial_match(sym, "GT."))
-    {
-      token.type = Token::Type::GT;
-      Err err    = tokenise_signed_type(std::string_view{sym}.substr(3),
-                                        token.operand_type, column + 3, line);
-      if (err.type != Err::Type::OK)
-        return err;
-    }
-    else if (initial_match(sym, "SUB."))
-    {
-      token.type = Token::Type::SUB;
-      Err err    = tokenise_signed_type(std::string_view{sym}.substr(4),
-                                        token.operand_type, column + 4, line);
-      if (err.type != Err::Type::OK)
-        return err;
-    }
-    else if (initial_match(sym, "PLUS."))
-    {
-      token.type = Token::Type::PLUS;
-      Err err    = tokenise_signed_type(std::string_view{sym}.substr(5),
-                                        token.operand_type, column + 5, line);
-      if (err.type != Err::Type::OK)
-        return err;
-    }
-    else if (initial_match(sym, "MULT."))
-    {
-      token.type = Token::Type::MULT;
-      Err err    = tokenise_signed_type(std::string_view{sym}.substr(5),
-                                        token.operand_type, column + 5, line);
-      if (err.type != Err::Type::OK)
-        return err;
-    }
-    else if (initial_match(sym, "PRINT."))
-    {
-      token.type = Token::Type::PRINT;
-      Err err    = tokenise_signed_type(std::string_view{sym}.substr(6),
-                                        token.operand_type, column + 6, line);
-      if (err.type != Err::Type::OK)
-        return err;
-    }
-    else if (sym == "JUMP.ABS")
-    {
-      token.type = Token::Type::JUMP_ABS;
-    }
-    else if (sym == "JUMP.STACK")
-    {
-      token.type = Token::Type::JUMP_STACK;
-    }
-    else if (initial_match(sym, "JUMP.IF."))
-    {
-      token.type = Token::Type::JUMP_IF;
-      Err err    = tokenise_unsigned_type(std::string_view{sym}.substr(8),
-                                          token.operand_type, column + 8, line);
-      if (err.type != Err::Type::OK)
-        return err;
-    }
-    else if (sym == "CALL.STACK")
-    {
-      token.type = Token::Type::CALL_STACK;
-    }
-    else if (sym == "CALL")
-    {
-      token.type = Token::Type::CALL;
-    }
-    else if (sym == "RET")
-    {
-      token.type = Token::Type::RET;
-    }
-    else if (sym == "GLOBAL")
-    {
-      token.type = Token::Type::GLOBAL;
-    }
-    else
+
+    // After running all maps and immediate checks, if the token still hasn't
+    // been found then just assume it's a symbol.
+    if (!found)
     {
       token.type    = Token::Type::SYMBOL;
       token.content = sym;
@@ -426,19 +256,19 @@ namespace Lexer
     return t;
   }
 
-  Err tokenise_literal_char(string_view &source, size_t &column, size_t &line,
-                            Token &t)
+  Err tokenise_literal_char(string_view &source_name, string_view &source,
+                            size_t &column, size_t &line, Token &t)
   {
     auto end = source.find('\'', 1);
     if (source.size() < 3 || end == 1 || end > 3)
-      return Err(Err::Type::INVALID_CHAR_LITERAL, column, line);
+      return Err(Err::Type::INVALID_CHAR_LITERAL, column, line, source_name);
     else if (source[1] == '\\')
     {
       // Escape sequence
       char escape = '\0';
       if (source.size() < 4 || source[3] != '\'')
         return Err(Err::Type::INVALID_CHAR_LITERAL_ESCAPE_SEQUENCE, column,
-                   line);
+                   line, source_name);
       switch (source[2])
       {
       case 'n':
@@ -456,7 +286,7 @@ namespace Lexer
       default:
         column += 2;
         return Err(Err::Type::INVALID_CHAR_LITERAL_ESCAPE_SEQUENCE, column,
-                   line);
+                   line, source_name);
         break;
       }
       t = Token{Token::Type::LITERAL_CHAR, std::to_string(escape), column};
@@ -528,12 +358,13 @@ namespace Lexer
       {
         auto end = source.find('\"', 1);
         if (end == string::npos)
-          return Err(Err::Type::INVALID_STRING_LITERAL, column, line);
+          return Err(Err::Type::INVALID_STRING_LITERAL, column, line,
+                     source_name);
         t = tokenise_literal_string(source, column, end);
       }
       else if (first == '\'')
       {
-        Err lerr = tokenise_literal_char(source, column, line, t);
+        Err lerr = tokenise_literal_char(source_name, source, column, line, t);
         if (lerr.type != Err::Type::OK)
           return lerr;
       }
@@ -544,7 +375,8 @@ namespace Lexer
         if (end == string::npos)
           end = source.size() - 1;
         else if (end != string::npos && !(isspace(source[end])))
-          return Err(Err::Type::INVALID_NUMBER_LITERAL, column, line);
+          return Err(Err::Type::INVALID_NUMBER_LITERAL, column, line,
+                     source_name);
         t = tokenise_literal_number(source, column);
       }
       else if (first == '0' && source.size() > 2 && source[1] == 'x' &&
@@ -554,20 +386,21 @@ namespace Lexer
         if (end == string::npos)
           end = source.size() - 1;
         else if (end != string::npos && !(isspace(source[end])))
-          return Err(Err::Type::INVALID_NUMBER_LITERAL, column, line);
+          return Err(Err::Type::INVALID_NUMBER_LITERAL, column, line,
+                     source_name);
         t = tokenise_literal_hex(source, column);
       }
       else if (is_char_in_s(first, VALID_SYMBOL))
       {
         Err lerr;
-        lerr = tokenise_symbol(source, column, line, t);
+        lerr = tokenise_symbol(source_name, source, column, line, t);
         if (lerr.type != Err::Type::OK)
           return lerr;
       }
       else
       {
         ++column;
-        return Err{Err::Type::UNKNOWN_LEXEME, column, line};
+        return Err{Err::Type::UNKNOWN_LEXEME, column, line, source_name};
       }
 
       if (is_token)
@@ -592,8 +425,13 @@ namespace Lexer
   {
   }
 
-  Err::Err(Err::Type type, size_t col, size_t line)
-      : col{col}, line{line}, type{type}
+  Err::Err()
+  {
+  }
+
+  Err::Err(Err::Type type, size_t col, size_t line,
+           std::string_view source_name)
+      : source_name{source_name}, col{col}, line{line}, type{type}
   {
   }
 
@@ -758,8 +596,8 @@ namespace Lexer
   std::string to_string(const Err &err)
   {
     std::stringstream stream;
-    stream << err.line << ":" << err.col << ": ";
-    stream << to_string(err.type);
+    stream << err.source_name << ":" << err.line << ":" << err.col << ": "
+           << to_string(err.type);
     return stream.str();
   }
 

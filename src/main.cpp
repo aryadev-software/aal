@@ -89,7 +89,7 @@ int main(int argc, const char *argv[])
 
   if (lerr.type != Lexer ::Err::Type::OK)
   {
-    cerr << source_name << ":" << lerr << endl;
+    cerr << lerr << endl;
     ret = 255 - static_cast<int>(lerr.type);
     goto end;
   }

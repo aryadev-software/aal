@@ -97,6 +97,7 @@ namespace Lexer
 
   struct Err
   {
+    std::string_view source_name;
     size_t col, line;
     enum class Type
     {
@@ -111,7 +112,9 @@ namespace Lexer
       UNKNOWN_LEXEME,
     } type;
 
-    Err(Type type = Type::OK, size_t col = 0, size_t line = 0);
+    Err();
+
+    Err(Type type, size_t col, size_t line, std::string_view source_name);
   };
 
   Err tokenise_buffer(std::string_view source_name, std::string_view content,
