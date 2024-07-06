@@ -114,7 +114,7 @@ namespace Lexer
 
     Err();
 
-    Err(Type type, size_t col, size_t line, std::string_view source_name);
+    Err(Type type, size_t col, size_t line, std::string_view source_name = "");
   };
 
   Err tokenise_buffer(std::string_view source_name, std::string_view content,

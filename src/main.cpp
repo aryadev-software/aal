@@ -70,7 +70,7 @@ int main(int argc, const char *argv[])
   string source_str;
   string_view original;
   string_view src;
-  vector<Token *> tokens, preprocessed_tokens;
+  vector<Token *> tokens;
   Lex_Err lerr;
 
   // Highest scoped variable cut off point
@@ -87,7 +87,7 @@ int main(int argc, const char *argv[])
   src      = string_view{source_str};
   lerr     = tokenise_buffer(source_name, src, tokens);
 
-  if (lerr.type != Lexer ::Err::Type::OK)
+  if (lerr.type != Lex_Err::Type::OK)
   {
     cerr << lerr << endl;
     ret = 255 - static_cast<int>(lerr.type);
@@ -95,7 +95,6 @@ int main(int argc, const char *argv[])
   }
   else
   {
-
 #if VERBOSE >= 1
     printf("[%sLEXER%s]: %lu bytes -> %lu tokens\n", TERM_GREEN, TERM_RESET,
            source_str.size(), tokens.size());

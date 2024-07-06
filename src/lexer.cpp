@@ -556,13 +556,13 @@ namespace Lexer
   std::string to_string(const Token &t)
   {
     std::stringstream stream;
-    stream << to_string(t.type);
+    stream << t.source_name << ":" << t.line << ":" << t.column << ": "
+           << to_string(t.type);
 
     if (t.operand_type != Token::OperandType::NIL)
       stream << "[" << to_string(t.operand_type) << "]";
     if (t.content != "")
       stream << "(`" << t.content << "`)";
-    stream << "@" << t.line << ", " << t.column;
     return stream.str();
   }
 
