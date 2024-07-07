@@ -59,15 +59,14 @@ int main(int argc, const char *argv[])
   (void)out_name;
 
 #if VERBOSE >= 1
-  printf("[%sASSEMBLER%s]: Assembling `%s` to `%s`\n", TERM_YELLOW, TERM_RESET,
-         source_name, out_name);
+  INFO("ASSEMBLER", "Assembling `%s` to `%s`\n", source_name, out_name);
 #endif
 
   auto file_source = read_file(source_name);
 
 #if VERBOSE >= 1
-  printf("[%sASSEMBLER%s]: `%s` -> %lu bytes\n", TERM_YELLOW, TERM_RESET,
-         source_name, file_source.has_value() ? file_source.value().size() : 0);
+  SUCCESS("ASSEMBLER", "`%s` -> %lu bytes\n", source_name,
+          file_source.has_value() ? file_source.value().size() : 0);
 #endif
 
   string source_str;
@@ -104,19 +103,18 @@ int main(int argc, const char *argv[])
   else
   {
 #if VERBOSE >= 1
-    printf("[%sLEXER%s]: %lu bytes -> %lu tokens\n", TERM_GREEN, TERM_RESET,
-           source_str.size(), tokens.size());
+    SUCCESS("LEXER", "%lu bytes -> %lu tokens\n", source_str.size(),
+            tokens.size());
 #endif
 
 #if VERBOSE == 2
-    printf("[%sLEXER%s]: Tokens "
-           "parsed:\n----------------------------------------------------------"
-           "----------------------\n",
-           TERM_GREEN, TERM_RESET);
+    SUCCESS("LEXER", "Tokens parsed:%s\n", "");
+    printf("-------------------------------------------------------------------"
+           "-------------\n");
     for (auto token : tokens)
       cout << "\t" << *token << endl;
-    printf("-------------------------------------------------------------"
-           "-------------------\n");
+    printf("-------------------------------------------------------------------"
+           "-------------\n");
 #endif
   }
 
@@ -131,20 +129,18 @@ int main(int argc, const char *argv[])
   else
   {
 #if VERBOSE >= 1
-    printf("[%sPREPROCESSER%s]: %lu tokens -> %lu units\n", TERM_GREEN,
-           TERM_RESET, tokens.size(), units.size());
+    SUCCESS("PREPROCESSER", "%lu tokens -> %lu units\n", tokens.size(),
+            units.size());
 #endif
 
 #if VERBOSE == 2
-    printf("[%sPREPROCESSER%s]: Units "
-           "constructed:\n-----------------------------------------------------"
-           "-----"
-           "----------------------\n",
-           TERM_GREEN, TERM_RESET);
+    SUCCESS("PREPROCESSER", "Units constructed:%s\n", "");
+    printf("-------------------------------------------------------------------"
+           "-------------\n");
     for (auto unit : units)
       cout << unit << endl;
-    printf("-------------------------------------------------------------"
-           "-------------------\n");
+    printf("-------------------------------------------------------------------"
+           "-------------\n");
 #endif
   }
 

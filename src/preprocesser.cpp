@@ -18,6 +18,8 @@
 #include <src/lexer.hpp>
 #include <src/preprocesser.hpp>
 
+#include <lib/base.h>
+
 #include <iostream>
 #include <sstream>
 
@@ -69,9 +71,10 @@ namespace Preprocesser
         {
           i = end;
 #if VERBOSE >= 2
-          std::cout << "[" TERM_YELLOW "PREPROCESSER" TERM_RESET "]: <" << depth
-                    << "> [" << i << "]:\n\tPreserving definition of `"
-                    << const_name << "` from outer scope\n";
+          INFO("PREPROCESSER",
+               "<%d> [%lu]:\n\t Preserving definition of `%s` from outer "
+               "scope\n",
+               depth, i, const_name.c_str());
 #endif
           continue;
         }
@@ -84,8 +87,8 @@ namespace Preprocesser
         i                     = end;
 
 #if VERBOSE >= 2
-        std::cout << "[" TERM_YELLOW "PREPROCESSER" TERM_RESET "]: <" << depth
-                  << "> [" << i << "]:\n\tConstant `" << const_name << "` {\n";
+        INFO("PREPROCESSER", "<%d> [%lu]:\n\tConstant `%s` {\n", depth, i,
+             const_name.c_str());
 
         for (size_t j = 0; j < body.size(); ++j)
         {
@@ -110,9 +113,8 @@ namespace Preprocesser
 
         const auto name = tokens[i + 1]->content;
 #if VERBOSE >= 2
-        std::cout << "[" TERM_YELLOW "PREPROCESSER" TERM_RESET "]: <" << depth
-                  << "> [" << i << "]: (" << *tokens[i] << "): FILENAME=`"
-                  << name << "`\n";
+        INFO("PREPROCESSER", "<%d> [%lu]: (", depth, i);
+        std::cout << *tokens[i] << "): FILENAME=`" << name << "`\n";
 #endif
         // If file has never been encountered, let's tokenise, preprocess then
         // cache the result
