@@ -27,12 +27,15 @@ extern "C"
 
 #include <src/base.hpp>
 #include <src/lexer.hpp>
+#include <src/preprocesser.hpp>
 
 using std::cout, std::cerr, std::endl;
 using std::string, std::string_view, std::vector;
 
 using Lexer::Token;
+using Preprocesser::Unit;
 using Lex_Err = Lexer::Err;
+using PP_Err  = Preprocesser::Err;
 
 void usage(const char *program_name, FILE *fp)
 {
@@ -73,6 +76,11 @@ int main(int argc, const char *argv[])
   vector<Token *> tokens;
   Lex_Err lerr;
 
+  Preprocesser::Map const_map, file_map;
+  vector<Token *> token_bag;
+  vector<Unit> units;
+  PP_Err *perr = nullptr;
+
   // Highest scoped variable cut off point
 
   if (file_source.has_value())
@@ -112,9 +120,42 @@ int main(int argc, const char *argv[])
 #endif
   }
 
+  perr =
+      Preprocesser::preprocess(tokens, units, token_bag, const_map, file_map);
+  if (perr)
+  {
+    cerr << *perr << endl;
+    ret = 255 - static_cast<int>(perr->type);
+    goto end;
+  }
+  else
+  {
+#if VERBOSE >= 1
+    printf("[%sPREPROCESSER%s]: %lu tokens -> %lu units\n", TERM_GREEN,
+           TERM_RESET, tokens.size(), units.size());
+#endif
+
+#if VERBOSE == 2
+    printf("[%sPREPROCESSER%s]: Units "
+           "constructed:\n-----------------------------------------------------"
+           "-----"
+           "----------------------\n",
+           TERM_GREEN, TERM_RESET);
+    for (auto unit : units)
+      cout << unit << endl;
+    printf("-------------------------------------------------------------"
+           "-------------------\n");
+#endif
+  }
+
 end:
   for (auto token : tokens)
     delete token;
+
+  for (auto token : token_bag)
+    delete token;
+  if (perr)
+    delete perr;
 
   return ret;
 }
