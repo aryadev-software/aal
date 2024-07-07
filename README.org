@@ -27,18 +27,21 @@ corresponding recipe:
 + ~make examples~
 * Lines of code
 #+begin_src sh :results table :exports results
-wc -lwc $(find -regex ".*\.[ch]\(pp\)?" -maxdepth 2)
+echo 'Files     Lines    Words    Characters'
+wc -lwc $(find src/ -regex ".*\.[ch]\(pp\)?") | awk '{print $4 "\t" $1 "\t" $2 "\t" $3}'
 #+end_src
 
 #+RESULTS:
-| Files                  | Lines | Words | Bytes |
-|------------------------+-------+-------+-------|
-| ./asm/base.hpp         |    21 |    68 |   472 |
-| ./asm/lexer.cpp        |   565 |  1448 | 14067 |
-| ./asm/base.cpp         |    33 |    89 |   705 |
-| ./asm/lexer.hpp        |   106 |   204 |  1757 |
-| ./asm/preprocesser.cpp |   218 |   574 |  5800 |
-| ./asm/preprocesser.hpp |    62 |   147 |  1360 |
-| ./asm/main.cpp         |   148 |   414 |  3791 |
-|------------------------+-------+-------+-------|
-| total                  |  1153 |  2944 | 27952 |
+|----------------------+-------+-------+------------|
+| Files                | Lines | Words | Characters |
+|----------------------+-------+-------+------------|
+| src/lexer.hpp        |   133 |   308 |       2899 |
+| src/main.cpp         |   161 |   460 |       4076 |
+| src/base.hpp         |    25 |   113 |        741 |
+| src/lexer.cpp        |   613 |  1647 |      17888 |
+| src/base.cpp         |    37 |   134 |        976 |
+| src/preprocesser.cpp |   273 |  1013 |       9103 |
+| src/preprocesser.hpp |    80 |   227 |       2068 |
+|----------------------+-------+-------+------------|
+| total                |  1322 |  3902 |      37751 |
+|----------------------+-------+-------+------------|
