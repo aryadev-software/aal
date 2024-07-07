@@ -5,18 +5,25 @@
   global main
 main:
   ;; Allocate a buffer of 3 characters
-  malloc.byte 3
+  push.word 3
+  malloc.byte
   mov.word 0
   ;; Setup the buffer to be equivalent to "abc"
   push.reg.word 0
   push.byte 'a'
-  mset.byte 0
+  push.word 0
+  ;; mset 0 'a'
+  mset.byte
   push.reg.word 0
   push.byte 'b'
-  mset.byte 1
+  push.word 1
+  ;; mset 1 'b'
+  mset.byte
   push.reg.word 0
   push.byte 'c'
-  mset.byte 2
+  push.word 2
+  ;; mset 2 'c'
+  mset.byte
 
   ;; Save buffer to W[8] because the first 8 registers should be
   ;; reserved for library routines as it may be overwritten
@@ -41,7 +48,7 @@ print_cptr:
 loopback:
   push.reg.word 0
   push.reg.word 1
-  mget.stack.byte
+  mget.byte
   print.char
 
   ;; I += 1

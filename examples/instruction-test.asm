@@ -22,24 +22,15 @@ main:
   dup.byte 1
   dup.hword 2
   dup.word 3
-  malloc.byte 1
-  malloc.hword 2
-  malloc.word 3
-  malloc.stack.byte
-  malloc.stack.hword
-  malloc.stack.word
-  mset.byte 1
-  mset.hword 2
-  mset.word 3
-  mset.stack.byte
-  mset.stack.hword
-  mset.stack.word
-  mget.byte 1
-  mget.hword 2
-  mget.word 3
-  mget.stack.byte
-  mget.stack.hword
-  mget.stack.word
+  malloc.byte
+  malloc.hword
+  malloc.word
+  mset.byte
+  mset.hword
+  mset.word
+  mget.byte
+  mget.hword
+  mget.word
   not.byte
   not.hword
   not.word
