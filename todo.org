@@ -19,18 +19,15 @@ Languages in the competition:
 2024-04-14: Chose C++ cos it will require the least effort to rewrite
 the currently existing codebase while still leveraging some less
 efficient but incredibly useful features.
-* TODO Rewrite lexer
-~push.magic~ is a valid PUSH token according to the current lexer.
-I'd like to clamp down on this obvious error at the lexer itself, so
-the parser can be dedicated to just dealing with address resolution
-and conversion to opcodes.
-
-How about an enum which represents the possible type of the operator?
+** DONE Write Lexer
+** WIP Write Preprocesser
+** TODO Write parser
 * TODO Better documentation [0%] :DOC:
 ** TODO Comment coverage [0%]
 *** TODO ASM [0%]
 **** TODO asm/lexer.h
 **** TODO asm/parser.h
+** TODO Write a specification
 * TODO Preprocessing directives :ASM:
 Like in FASM or NASM where we can give certain helpful instructions to
 the assembler.  I'd use the ~%~ symbol to designate preprocessor
@@ -49,159 +46,6 @@ A call should look something like this:
   $name 1 2 3
 #+end_src
 and those tokens will be substituted literally in the macro body.
-* TODO Rewrite preprocesser to create a custom unit instead of token streams
-** Problem
-A problem that occurs in the preprocessor is token column and line
-count.  Say =a.asm= has ~%use "b.asm"~.  The tokens from the =b.asm=
-file are inserted into =a.asm='s token stream, but the line/column
-count from there isn't properly set in =a.asm=.
-
-A naive solution would be to just recount the lines and columns, but
-this removes information about where those tokens came from.  Say an
-error occurs in some of =b.asm='s code: I would like to be able to
-report them.
-
-Therefore, we can no longer just generate new token streams from the
-preprocesser and should instead look at making more complex
-abstractions.
-
-A problem this could also solve is nested errors and recursive
-constants.  Say I have some assembly like so
-#+begin_src asm
-  %const limit 20 %end
-  %const print-limit
-  ...
-  push.byte $limit
-  print.byte
-  ...
-  %end
-#+end_src
-
-A call to ~print-limit~ under the current system would insert the
-tokens for print-limit but completely forget about ~push.byte $limit~
-which would cause a parsing error.  (This could be fixed under the
-current system by allowing reference resolution inside of const
-blocks, with the conceit that it would be hard to stop infinite recursion)
-** Language model
-The model I have in mind is that all constructs in this meta language
-(the preprocessing language) are either singular tokens or collections
-of tokens/constructs in a recursive sense.  This naturally follows
-from the fact that a single pass isn't enough to properly parse this
-language: there must be some recursive nature which forces the
-language to take multiple passes to completely generate a stream that
-can be parsed.
-
-This vague notion can be formalised like so.  A preprocessing unit is
-either a singular token or a named collection of units.  The former
-represents your standard symbols and literals while the later
-represents ~%const~ and ~%use~ calls where there is a clear name
-associated to a collection of one or more tokens (in the case of the
-former it's the constant's name and the latter it's the filename).
-We'll distinguish this as well.
-
-#+begin_src text
-Token = PP_USE | PP_CONST | String(Content) | Symbol(Content) | PUSH(Content) | ...
-Type = File(String) | Constant(Symbol)
-Unit = Token      | Container(Type . Vector[Unit])
-#+end_src
-
-Through this model our initial stream of tokens can be considered
-units.  We can already see that this model may solve our original
-problem: with named containers it doesn't matter that certain tokens
-are from different parts of the file or different files as they are
-distinctly typed from the general set of tokens, with a name which
-states where they're from.
-** Processing
-We need this model to have a notion of "processing" though, otherwise
-it's quite useless.  A processing function is simply a function which
-takes a unit and returns another unit.  We currently have two
-processing functions we can consider: ~process_const~ and
-~process_use~.
-
-~process_use~ takes a vector of tokens and, upon encountering PP_USE
-accepts the next token (a string) and tokenises the file
-with that name.  Within our model we'd make the stream of tokens
-created from opening the file a /container/.
-
-~process_const~ takes a vector of tokens and does two things in an
-iteration:
-1) upon encountering PP_CONST accepts the next n tokens till PP_END is
-   encountered, with the first token being a symbol.  This is
-   registered in a map of constants (~CONSTS~) where the symbol is the
-   key and the value associated is the n - 1 tokens accepted
-2) upon encountering a PP_REFERENCE reads the content associated with
-   it (considered a symbol ~S~) and replaces it ~CONSTS[S]~ (if S is
-   in CONSTS).
-
-One thing to note is that both of these definitions are easily
-extensible to the general definition of units: if a unit is a
-container of some kind we can recur through its vector of units to
-resolve any further "calls".  For ~process_const~ it's ~%const~ or
-~$ref~ while for ~process_use~ it's ~%use~.
-** History/versioning
-One additional facet to this model I'd like to add is "history".  Each
-unit is actually a list (or a singly linked tree where each parent has
-at most one child) of sub-units where the top of the list represents
-the current version.  Each descendant is a previous version of the
-token.
-
-Say I do some processing on an element of the unit list =a= (with
-index =i=) such that it becomes a new "unit", call it =b=.  Then we
-update V by =V[i] = cons(b, a)=.  Through this, the lists acts as a
-history of processing that has occurred on the unit.  This provides an
-ability to trace the path of preprocessing to an eventual conclusion.
-
-Processing occurs on a unit until it cannot be done further i.e. when
-there are no more "calls" in the tree to resolve.  The history list
-provides all the versions of a unit till its resolved form.
-
-To see what a unit with history may look like (where symbols are
-terminals i.e. completely resolved):
-+ Container('limit' . [a Container("b" . d e f) c])
-  + Container('limit' . [a '$b' c])
-    + Token(PP_REF('$limit'))
-
-This shows resolution of the unit reference ~$limit~, which in turn
-leads to the resolution of ~$b~ which is a sub-unit.
-
-There are two ways of indefinite resolution, one per method of
-processing.  For ~process_use~ it is two files calling ~%use~ on each
-other and for ~process_const~ it is a ~%const~ calling itself.  We can
-just disallow it through analysis.
-** Pseudocode
-#+begin_src text
-process_use(V: Vector[Unit]) ->
-    [cons((if v is Token(PP_USE) and next(v) is Token(String(S))
-             -> Container(File(S) . tokenise(open(v')))
-           else if v is Container(name . units)
-             -> Container(name . process_use(units))
-           else
-             -> v),
-          v_x)
-     v = v_x[0]
-     for v_x in V]
-
-CONSTS={}
-process_const(V: Vector[Unit]) ->
-    [cons((if v is Token(PP_CONST) and next(v) is Token(Symbol(S))
-                do {
-                    i := find(Token(PP_END), V[v:])
-                    CONSTS[S] = V[next(v):prev(i)]
-                    -> Container(Constant(S) . CONSTS[S])
-                }
-           else if v is Token(PP_REF(S))
-                -> CONSTS[S]
-           else if v is Container(name . units)
-               -> Container(name . process_const(units))
-           else
-               -> v)
-          v_x)
-     v = v_x[0]
-     for v_x in V]
-#+end_src
-* TODO Write a specification for the assembly language
-In particular the preprocessor macro language and the direct relation
-between opcodes and parse units in the assembler.
 * Completed
 ** DONE Write a label/jump system :ASM:
 Essentially a user should be able to write arbitrary labels (maybe
@@ -350,3 +194,10 @@ That would be a very simple way of solving the static vs dynamic
 linking problem: just include the files you actually need.  Even the
 standard library would be fine and not require any additional work.
 Let's see how this would work.
+** DONE Rewrite lexer
+~push.magic~ is a valid PUSH token according to the current lexer.
+I'd like to clamp down on this obvious error at the lexer itself, so
+the parser can be dedicated to just dealing with address resolution
+and conversion to opcodes.
+
+How about an enum which represents the possible type of the operator?
