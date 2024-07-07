@@ -25,7 +25,7 @@ extern "C"
 
 #include <src/lexer.hpp>
 
-static_assert(NUMBER_OF_OPCODES == 99, "ERROR: Lexer is out of date");
+static_assert(NUMBER_OF_OPCODES == 115, "ERROR: Lexer is out of date");
 
 using std::string, std::string_view;
 
@@ -117,18 +117,11 @@ namespace Lexer
     // Tokens that are fixed i.e. have no variations.  This is because they have
     // no type.
     std::unordered_map<std::string, Token::Type> fixed_map = {
-        {"%CONST", Token::Type::PP_CONST},
-        {"%USE", Token::Type::PP_USE},
-        {"%END", Token::Type::PP_END},
-        {"NOOP", Token::Type::NOOP},
-        {"HALT", Token::Type::HALT},
-        {"MDELETE", Token::Type::MDELETE},
-        {"MSIZE", Token::Type::MSIZE},
-        {"JUMP.ABS", Token::Type::JUMP_ABS},
-        {"JUMP.STACK", Token::Type::JUMP_STACK},
-        {"CALL.STACK", Token::Type::CALL_STACK},
-        {"CALL", Token::Type::CALL},
-        {"RET", Token::Type::RET},
+        {"%CONST", Token::Type::PP_CONST}, {"%USE", Token::Type::PP_USE},
+        {"%END", Token::Type::PP_END},     {"NOOP", Token::Type::NOOP},
+        {"HALT", Token::Type::HALT},       {"MDELETE", Token::Type::MDELETE},
+        {"MSIZE", Token::Type::MSIZE},     {"JUMP.ABS", Token::Type::JUMP_ABS},
+        {"CALL", Token::Type::CALL},       {"RET", Token::Type::RET},
         {"GLOBAL", Token::Type::GLOBAL},
     };
 
@@ -146,11 +139,8 @@ namespace Lexer
         {"POP.", Token::Type::POP, tokenise_unsigned_type},
         {"MOV.", Token::Type::MOV, tokenise_unsigned_type},
         {"DUP.", Token::Type::DUP, tokenise_unsigned_type},
-        {"MALLOC.STACK.", Token::Type::MALLOC_STACK, tokenise_unsigned_type},
         {"MALLOC.", Token::Type::MALLOC, tokenise_unsigned_type},
-        {"MSET.STACK.", Token::Type::MSET_STACK, tokenise_unsigned_type},
         {"MSET.", Token::Type::MSET, tokenise_unsigned_type},
-        {"MGET.STACK.", Token::Type::MGET_STACK, tokenise_unsigned_type},
         {"MGET.", Token::Type::MGET, tokenise_unsigned_type},
         {"NOT.", Token::Type::NOT, tokenise_unsigned_type},
         {"OR.", Token::Type::OR, tokenise_unsigned_type},
@@ -473,16 +463,10 @@ namespace Lexer
       return "DUP";
     case Token::Type::MALLOC:
       return "MALLOC";
-    case Token::Type::MALLOC_STACK:
-      return "MALLOC_STACK";
     case Token::Type::MSET:
       return "MSET";
-    case Token::Type::MSET_STACK:
-      return "MSET_STACK";
     case Token::Type::MGET:
       return "MGET";
-    case Token::Type::MGET_STACK:
-      return "MGET_STACK";
     case Token::Type::MDELETE:
       return "MDELETE";
     case Token::Type::MSIZE:
@@ -515,14 +499,10 @@ namespace Lexer
       return "PRINT";
     case Token::Type::JUMP_ABS:
       return "JUMP_ABS";
-    case Token::Type::JUMP_STACK:
-      return "JUMP_STACK";
     case Token::Type::JUMP_IF:
       return "JUMP_IF";
     case Token::Type::CALL:
       return "CALL";
-    case Token::Type::CALL_STACK:
-      return "CALL_STACK";
     case Token::Type::RET:
       return "RET";
     case Token::Type::SYMBOL:
@@ -541,6 +521,10 @@ namespace Lexer
       return "BYTE";
     case Token::OperandType::CHAR:
       return "CHAR";
+    case Token::OperandType::SHORT:
+      return "SHORT";
+    case Token::OperandType::SSHORT:
+      return "SSHORT";
     case Token::OperandType::HWORD:
       return "HWORD";
     case Token::OperandType::INT:
