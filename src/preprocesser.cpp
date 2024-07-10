@@ -129,13 +129,13 @@ namespace Preprocesser
           Lexer::Err lexer_err = Lexer::tokenise_buffer(tokens[i + 1]->content,
                                                         content.value(), body);
 
-          if (lexer_err.type != LET::OK)
-            return new Err{ET::IN_FILE_LEXING, token, nullptr, lexer_err};
-
-          // Here we add the tokens, freshly allocated, to the bag so we can
-          // free it later
+          // Add tokens to the bag for deallocation later
+          // NOTE: We do this before errors so no memory leaks happen
           new_token_bag.insert(std::end(new_token_bag), std::begin(body),
                                std::end(body));
+
+          if (lexer_err.type != LET::OK)
+            return new Err{ET::IN_FILE_LEXING, token, nullptr, lexer_err};
 
           file_map[name].body = body;
           std::vector<Unit> body_units;
