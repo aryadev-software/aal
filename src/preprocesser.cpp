@@ -62,12 +62,11 @@ namespace Preprocesser
         else if (end - i == 2)
           return new Err{ET::EMPTY_CONST, token};
 
-        // If this content is actually being included (depth > 0) by another
-        // file, check if the constant is already defined.  If so, stop what
-        // we're doing and continue because user has technically redefined the
-        // constant.  Implements a #ifndef guard automatically on included
-        // constants.
-        if (depth > 0 && const_map.find(const_name) != const_map.end())
+        // Check if we're redefining a constant.  If the current depth is
+        // equivalent or higher than the depth when the constant was defined,
+        // then stop.
+        if (const_map.find(const_name) != const_map.end() &&
+            const_map[const_name].depth <= depth)
         {
           i = end;
 #if VERBOSE >= 2
@@ -83,7 +82,7 @@ namespace Preprocesser
         std::copy(std::begin(tokens) + i + 2, std::begin(tokens) + end,
                   std::begin(body));
 
-        const_map[const_name] = {token, body};
+        const_map[const_name] = {token, body, depth};
         i                     = end;
 
 #if VERBOSE >= 2

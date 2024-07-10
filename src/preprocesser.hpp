@@ -29,6 +29,7 @@ namespace Preprocesser
   {
     Lexer::Token *root;
     std::vector<Lexer::Token *> body;
+    int depth;
   };
 
   typedef std::unordered_map<std::string, Block> Map;
