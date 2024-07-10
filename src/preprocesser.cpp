@@ -239,6 +239,8 @@ namespace Preprocesser
       const Err &e = *errors[depth];
       ss << e.token->source_name << ":" << e.token->line << ":"
          << e.token->column << ": " << to_string(e.type);
+      if (e.type == ET::IN_FILE_LEXING)
+        ss << ":\n" << e.lexer_error;
       if (depth != errors.size() - 1)
         ss << "\n";
     }
