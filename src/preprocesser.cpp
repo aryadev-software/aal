@@ -101,6 +101,20 @@ namespace Preprocesser
         std::cout << "\t}\n";
 #endif
       }
+      else if (token->type == TT::PP_REFERENCE)
+      {
+        // Reference expansion based on latest constant
+        const auto found = const_map.find(token->content);
+        if (found == const_map.end())
+          return new Err{ET::UNKNOWN_NAME_IN_REFERENCE, token};
+
+        std::vector<Unit> preprocessed;
+        Err *err = preprocess(found->second.body, preprocessed, new_token_bag,
+                              const_map, file_map, depth + 1);
+        if (err)
+          return new Err{ET::IN_ERROR, token, err};
+        units.push_back(Unit{token, preprocessed});
+      }
       else if (token->type == TT::PP_USE)
       {
         // Ensure string in next token
@@ -151,20 +165,6 @@ namespace Preprocesser
         // call
         else
           i += 1;
-      }
-      else if (token->type == TT::PP_REFERENCE)
-      {
-        // Reference expansion based on latest constant
-        const auto found = const_map.find(token->content);
-        if (found == const_map.end())
-          return new Err{ET::UNKNOWN_NAME_IN_REFERENCE, token};
-
-        std::vector<Unit> preprocessed;
-        Err *err = preprocess(found->second.body, preprocessed, new_token_bag,
-                              const_map, file_map, depth + 1);
-        if (err)
-          return new Err{ET::IN_ERROR, token, err};
-        units.push_back(Unit{token, preprocessed});
       }
       else if (token->type == TT::PP_END)
         return new Err{ET::NO_CONST_AROUND, token};
@@ -228,15 +228,13 @@ namespace Preprocesser
   std::string to_string(const Err &err)
   {
     std::stringstream ss;
-    // Reverse traversal of err linked list
+    // Reverse traversal of the linked list of errors
     std::vector<Err *> errors;
     errors.push_back((Err *)&err);
     for (Err *e = err.child_error; e; e = e->child_error)
       errors.insert(errors.begin(), e);
     for (size_t depth = 0; depth < errors.size(); ++depth)
     {
-      // for (size_t i = 0; i < depth; ++i)
-      //   ss << " ";
       const Err &e = *errors[depth];
       ss << e.token->source_name << ":" << e.token->line << ":"
          << e.token->column << ": " << to_string(e.type);

@@ -68,14 +68,14 @@ namespace Preprocesser
     ~Err(void);
   };
 
+  Err *preprocess(std::vector<Lexer::Token *> tokens, std::vector<Unit> &units,
+                  std::vector<Lexer::Token *> &new_token_bag, Map &const_map,
+                  Map &file_map, int depth = 0);
+
   std::string to_string(const Unit &, int depth = 0);
   std::string to_string(const Err::Type &);
   std::string to_string(const Err &);
   std::ostream &operator<<(std::ostream &, const Unit &);
   std::ostream &operator<<(std::ostream &, const Err &);
-
-  Err *preprocess(std::vector<Lexer::Token *> tokens, std::vector<Unit> &units,
-                  std::vector<Lexer::Token *> &new_token_bag, Map &const_map,
-                  Map &file_map, int depth = 0);
 }; // namespace Preprocesser
 #endif
