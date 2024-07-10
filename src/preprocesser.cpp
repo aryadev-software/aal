@@ -154,11 +154,12 @@ namespace Preprocesser
           std::vector<Unit> body_units;
           Err *err = preprocess(body, body_units, new_token_bag, const_map,
                                 file_map, depth + 1);
-          // TODO: Introduce stack traces for this error (this error occurs in
-          // outside file that has use site in current file).
           if (err)
             return new Err{ET::IN_ERROR, token, err};
-          units.push_back(Unit{token, body_units});
+
+          // Compile away empty bodies
+          if (body_units.size() != 0)
+            units.push_back(Unit{token, body_units});
           ++i;
         }
         // Otherwise file must be part of the source tree already, so skip this
